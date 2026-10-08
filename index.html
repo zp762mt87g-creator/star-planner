@@ -263,8 +263,10 @@
       <button class="tb" id="btnExport" style="font-size:12px">⬇️ 手动导出</button>
       <button class="tb" id="btnImport" style="font-size:12px">⬆️ 手动导入</button>
       <button class="tb" id="btnExportHtml" style="font-size:12px">📦 打包</button>
-    
-    <div id="bindMount"></div></div>
+    </div>
+    <!-- 绑定入口必须放在应急区「外面」：应急区平时是隐藏的，
+         放进去的话网页版第一次打开根本看不到，等于没法连接。 -->
+    <div id="bindMount"></div>
   </div>
 
   <div class="stats" id="stats"></div>
@@ -1337,14 +1339,16 @@ function bindPanelHTML(){
   return `<div id="bindPanel" style="display:none;margin-top:14px;padding:16px 18px;
       background:rgba(255,214,102,.07);border:1px solid rgba(255,214,102,.28);border-radius:14px">
     <div style="font-size:13px;color:#ffe9a8;line-height:1.8">
-      <b>🔗 第一次使用：把这串「连接码」粘进来</b><br>
+      <b>🔗 第一次使用：粘一次「连接码」，以后全自动</b><br>
       <span style="color:#cfc6b8;font-size:12px">
-        粘一次就好，存在这台设备的浏览器里，以后全自动同步、关机也不丢。<br>
-        连接码就是 GitHub 账号 <b id="bindUserLabel"></b> 的私人令牌，只存在你自己的设备上。
+        粘一次就好，只存在这台设备的浏览器里，之后自动同步、关机也不丢。<br>
+        换手机/换电脑就在那台设备上再粘一次，数据会自动合到一起。
       </span>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <input type="text" id="bindUser" placeholder="GitHub 用户名"
+          style="width:170px;font-size:12px">
         <input type="text" id="bindToken" placeholder="粘贴 ghp_ 开头的连接码"
-          style="flex:1;min-width:220px;font-size:12px">
+          style="flex:1;min-width:200px;font-size:12px">
         <button class="btn" id="btnBind" style="padding:0 16px">连上</button>
       </div>
       <div id="bindMsg" style="margin-top:8px;font-size:12px;color:#cfc6b8"></div>
@@ -1354,8 +1358,8 @@ function bindPanelHTML(){
 function showBindPanel(user){
   const old=document.getElementById("bindPanel");
   if(old) old.style.display="block";
-  const lb=document.getElementById("bindUserLabel");
-  if(lb&&user) lb.textContent="@"+user;
+  const bu=document.getElementById("bindUser");
+  if(bu&&user&&!bu.value) bu.value=user;
   const inp=document.getElementById("bindToken");
   if(inp&&!inp.dataset.bound){
     inp.dataset.bound="1";
@@ -1373,7 +1377,15 @@ async function doBind(){
     if(msg){ msg.innerHTML="<span style='color:#ff9a9a'>连接码不对，应该是一串 ghp_ 开头的字符</span>"; }
     inp.focus(); return;
   }
-  CFG.user=(CFG.user||"")||(PRESET_CFG&&PRESET_CFG.user)||"";
+  /* 用户名：优先用填的，其次本机已存的，最后用预置的 */
+  const buIn=document.getElementById("bindUser");
+  const uIn=buIn?buIn.value.trim():"";
+  CFG.user=uIn||CFG.user||(PRESET_CFG&&PRESET_CFG.user)||"";
+  if(!CFG.user){
+    if(msg){ msg.innerHTML="<span style='color:#ff9a9a'>还要填一下 GitHub 用户名（就是连接码所属账号）</span>"; }
+    if(buIn) buIn.focus();
+    return;
+  }
   CFG.token=tk;
   if(msg){ msg.textContent="正在连接…"; }
   try{ saveCfg(); }catch(e){}
