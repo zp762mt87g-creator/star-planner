@@ -22,6 +22,8 @@
       radial-gradient(1000px 520px at 82% -8%, rgba(255,200,80,.13) 0%, transparent 55%),
       radial-gradient(800px 480px at 8% 18%, rgba(255,150,90,.09) 0%, transparent 52%),
       linear-gradient(165deg,#181228,#0d0b1a 55%,#080613);
+    /* relative：让 .decoLayer 的 absolute 相对整份文档定位，星星人才能跟着滚动 */
+    position:relative;
     overflow-x:hidden;
   }
   .sky{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
@@ -76,10 +78,12 @@
 
   /* 星星人装饰（挂在卡片边框外） */
   /* ============ 可拖动的星星人 ============
-     三只 deco 挂在 .decoLayer（position:fixed 全屏透明层）上，
-     这样能拖到页面任何位置，不会被卡片的 overflow 裁掉。
-     .decoLayer 本身 pointer-events:none，所以透明区域不挡鼠标操作。 */
-  .decoLayer{position:fixed;inset:0;z-index:60;pointer-events:none;overflow:hidden}
+     .decoLayer 用 absolute 铺满整份文档（不是 fixed！），
+     所以星星人是"贴在页面上"而不是"钉在屏幕上"：
+     往下滚它会跟着往上走，能整个滚出视野，滚回来还待在原处。
+     .decoLayer 本身 pointer-events:none，透明区域不挡鼠标操作。 */
+  .decoLayer{position:absolute;top:0;left:0;width:100%;height:100%;
+    z-index:60;pointer-events:none}
   .deco{position:absolute;pointer-events:auto;cursor:grab;touch-action:none;
     -webkit-user-select:none;user-select:none;will-change:left,top;
     filter:drop-shadow(0 7px 16px rgba(0,0,0,.5));transition:filter .25s ease}
@@ -119,8 +123,8 @@
     0%{transform:translate(0,0) scale(.25);opacity:1}
     100%{transform:translate(var(--dx),var(--dy)) scale(1.15);opacity:0}
   }
-  /* 首次进入的提示气泡 */
-  .decoHint{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);
+  /* 首次进入的提示气泡。用 fixed：无论页面滚到哪都能看见，属于"提示"不是"贴纸" */
+  .decoHint{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
     background:rgba(22,17,36,.94);border:1px solid rgba(255,214,102,.45);
     color:#ffe9a8;font-size:13px;padding:10px 20px;border-radius:999px;z-index:62;
     pointer-events:none;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.55);
@@ -152,6 +156,24 @@
   .task.done .txt{text-decoration:line-through;color:var(--muted)}
   .task .del{color:var(--muted);cursor:pointer;font-size:18px;opacity:.5;padding:0 4px}
   .task .del:hover{opacity:1;color:var(--pink)}
+  /* 批量管理：勾选框 + 操作条 */
+  .pick{width:22px;height:22px;border-radius:7px;flex:none;cursor:pointer;
+    border:2px solid rgba(255,255,255,.28);background:rgba(0,0,0,.2);
+    display:grid;place-items:center;font-size:13px;color:transparent;transition:.16s}
+  .pick:hover{border-color:var(--gold)}
+  .pick.on{background:var(--star);border-color:var(--star);color:#3a2a00;font-weight:900}
+  .task.picked{background:rgba(255,214,102,.1);box-shadow:inset 0 0 0 1px rgba(255,214,102,.35)}
+  .multiBar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    margin:0 0 12px;padding:10px 12px;border-radius:12px;
+    background:rgba(255,214,102,.07);border:1px solid rgba(255,214,102,.26)}
+  .multiBar .mb{flex:1;font-size:12px;color:var(--muted)}
+  .multiBar button{font-family:inherit;font-size:12px;cursor:pointer;
+    background:rgba(255,255,255,.07);color:var(--text);border:1px solid var(--line);
+    border-radius:9px;padding:6px 11px;transition:.16s}
+  .multiBar button:hover{background:rgba(255,214,102,.16);border-color:var(--gold)}
+  .multiBar button.danger:hover{background:rgba(255,120,110,.2);border-color:var(--pink);color:var(--pink)}
+  .multiBar button:disabled{opacity:.4;cursor:not-allowed}
+  @media print{.multiBar,.pick{display:none!important}}
   .empty{color:var(--muted);font-size:13px;text-align:center;padding:14px 0}
   .notice{font-size:12px;color:var(--gold);background:rgba(242,169,59,.1);border:1px solid rgba(242,169,59,.25);
     border-radius:10px;padding:8px 12px;margin-bottom:12px}
@@ -264,9 +286,7 @@
       <button class="tb" id="btnImport" style="font-size:12px">⬆️ 手动导入</button>
       <button class="tb" id="btnExportHtml" style="font-size:12px">📦 打包</button>
     </div>
-    <!-- 绑定入口必须放在应急区「外面」：应急区平时是隐藏的，
-         放进去的话网页版第一次打开根本看不到，等于没法连接。 -->
-    <div id="bindMount"></div>
+    <!-- 连接码只在页面底部那张「多端自动同步」卡片里填一次，这里不再重复放一个 -->
   </div>
 
   <div class="stats" id="stats"></div>
@@ -275,11 +295,13 @@
     <div style="display:flex;flex-direction:column;gap:24px">
       <div class="card">
         <h2>✅ 今日待办 <span class="tag" id="taskDateTag"></span>
-          <button class="hbtn no-print" id="btnRoll">顺延昨日未完成</button></h2>
+          <button class="hbtn no-print" id="btnRoll">顺延昨日未完成</button>
+          <button class="hbtn no-print" id="btnMulti">☑️ 批量</button></h2>
         <div class="add no-print">
           <input type="text" id="taskInput" placeholder="写一件今天想做的事…">
           <button class="btn" id="addTask">添加</button>
         </div>
+        <div id="multiBar" class="multiBar no-print" style="display:none"></div>
         <div id="taskList"></div>
       </div>
 
@@ -340,7 +362,8 @@
 
     <div id="syncSetup">
       <p class="hint" style="margin-bottom:12px">
-        <b>第一次使用，只需做一次连接</b>（约 30 秒），之后<b>永久全自动</b>——自动上传、自动下载，不用手动备份。
+        <b>第一次使用，只需做一次连接</b>（约 30 秒），之后<b>永久全自动</b>——自动上传、自动下载，不用手动备份。<br>
+        <span style="opacity:.8">这是<b>全站唯一</b>需要填连接码的地方。粘一次以后，这台设备就记住了，再也不用管。</span>
       </p>
       <ol style="line-height:2;color:var(--muted);padding-left:20px;margin:0 0 14px">
         <li>点下面按钮打开 GitHub 官方页面，<b>勾选 <code>repo</code></b>（必须勾上）</li>
@@ -716,13 +739,69 @@ function renderStats(){
   $("#stats").innerHTML=items.map(([i,b,l,t])=>
     `<div class="stat" title="${esc(t)}"><div class="ico">${i}</div><div><div class="big">${b}</div><div class="lab">${l}</div></div></div>`).join("");
 }
+/* ---- 批量管理：勾多条一起完成 / 一起删 ----
+   选中集合按任务 id 记，不按下标——列表顺序变了也不会选错人。 */
+var multiMode=false;
+var multiSel=new Set();
+function multiRender(){
+  const bar=$("#multiBar"); if(!bar) return;
+  const list=peekDay(viewDate)?.tasks||[];
+  if(!multiMode){ bar.style.display="none"; return; }
+  bar.style.display="flex";
+  /* 只保留仍然存在的 id，避免删过之后残留 */
+  const alive=new Set(list.map(t=>t.id));
+  multiSel.forEach(id=>{ if(!alive.has(id)) multiSel.delete(id); });
+  const n=multiSel.size;
+  bar.innerHTML=
+    `<button id="mbAll">全选</button>`+
+    `<button id="mbNone">清空选择</button>`+
+    `<button id="mbDone" ${n?"":"disabled"}>✅ 标记完成</button>`+
+    `<button id="mbUndone" ${n?"":"disabled"}>↩︎ 取消完成</button>`+
+    `<button id="mbDel" class="danger" ${n?"":"disabled"}>🗑 删除选中</button>`+
+    `<span class="mb">已选 <b style="color:var(--star)">${n}</b> 条　点「批量」退出勾选模式</span>`;
+  $("#mbAll").onclick=()=>{ multiSel=new Set(list.map(t=>t.id)); renderTasks(); };
+  $("#mbNone").onclick=()=>{ multiSel.clear(); renderTasks(); };
+  $("#mbDone").onclick=()=>multiBatch(true);
+  $("#mbUndone").onclick=()=>multiBatch(false);
+  $("#mbDel").onclick=multiBatchDel;
+}
+function multiBatch(done){
+  if(!multiSel.size){ toast("先勾上要操作的任务"); return; }
+  const n=multiSel.size;
+  commit(()=>{
+    const arr=day(viewDate).tasks;
+    arr.forEach(t=>{ if(multiSel.has(t.id)){ t.done=done; t.ts=Date.now(); } });
+    day(viewDate).ts=Date.now();
+  });
+  toast(done?("⭐ 已标记完成 "+n+" 条"):("已取消完成 "+n+" 条"));
+}
+function multiBatchDel(){
+  if(!multiSel.size){ toast("先勾上要删的任务"); return; }
+  const arr=day(viewDate).tasks;
+  const names=arr.filter(t=>multiSel.has(t.id)).map(t=>t.t);
+  const head=names.slice(0,3).map(s=>esc(s)).join("、");
+  if(!confirm("要删除这 "+names.length+" 条任务吗？\n\n"+head+(names.length>3?(" 等 "+names.length+" 条"):"")+"\n\n删掉也能在别的设备上同步生效，本设备上不可恢复。")) return;
+  const n=multiSel.size;
+  commit(()=>{
+    const d=day(viewDate);
+    d.tasks=d.tasks.filter(t=>!multiSel.has(t.id));
+    d.del=d.del||{};
+    multiSel.forEach(id=>{ d.del[id]=Date.now(); });   // 墓碑：别的设备也会删掉
+    d.ts=Date.now();
+  });
+  multiSel.clear();
+  toast("🗑 已删除 "+n+" 条");
+}
 function renderTasks(){
   const d=parseKey(viewDate);
   $("#taskDateTag").textContent=(d.getMonth()+1)+"/"+d.getDate()+(viewDate===todayKey()?" 今天":(viewDate<todayKey()?" 回看":""));
   const d0=peekDay(viewDate); const list=$("#taskList"), ts=d0?d0.tasks:[];
+  multiRender();
+  const bm=$("#btnMulti"); if(bm) bm.textContent=multiMode?"✖️ 退出批量":"☑️ 批量";
   if(!ts.length){list.innerHTML='<div class="empty">这天还没有任务 ✨</div>';return;}
   list.innerHTML=ts.map((t,i)=>`
-    <div class="task ${t.done?"done":""}">
+    <div class="task ${t.done?"done":""} ${multiSel.has(t.id)?"picked":""}">
+      ${multiMode?`<div class="pick ${multiSel.has(t.id)?"on":""}" data-id="${t.id}">✓</div>`:""}
       <div class="check ${t.done?"on":""}" data-i="${i}">${t.done?"★":""}</div>
       <div class="txt">${esc(t.t)}${t.movedTo&&!t.done?`<span class="moved">→ 已顺延到 ${t.movedTo.slice(5).replace("-","/")}</span>`:""}</div>
       <div class="del" data-i="${i}">×</div>
@@ -832,7 +911,10 @@ function roApply(){
   document.querySelectorAll("input[type=text],textarea").forEach(el=>{ el.disabled=true; el.placeholder="只读分享版"; });
   document.querySelectorAll(".add button,.goal button,.hbtn,td button").forEach(b=>{ b.disabled=true; b.style.opacity=.4; b.style.cursor="not-allowed"; });
   document.querySelectorAll("#week textarea").forEach(el=>{ el.readOnly=true; });
-  const bp=document.getElementById("bindPanel"); if(bp&&bp.parentElement) bp.parentElement.style.display="none";
+  /* 只读分享版：整张「多端自动同步」卡片都藏起来。
+     朋友那边没有任何账号信息，给他一个填连接码的框反而莫名其妙。 */
+  const cfg=document.querySelector(".card.cfg");
+  if(cfg) cfg.style.display="none";
   const sb=document.getElementById("btnShare"); if(sb) sb.style.display="none";
   const t=document.getElementById("syncDot"); if(t) t.className="dot";
   const st=document.getElementById("syncTxt"); if(st) st.textContent="📸 只读分享";
@@ -844,7 +926,7 @@ function roApply(){
   try{
     const css=document.createElement("style");
     css.textContent="body.readonly input,body.readonly textarea,body.readonly button,"+
-      "body.readonly .check,body.readonly .del{opacity:.45;pointer-events:none}"+
+      "body.readonly .check,body.readonly .del,body.readonly .pick{opacity:.45;pointer-events:none}"+
       "body.readonly .deco{pointer-events:auto!important;opacity:1!important}";
     document.head.appendChild(css);
   }catch(e){ console.error("[star-planner] 只读样式注入失败：",e); }
@@ -867,31 +949,76 @@ function roApply(){
    3) 按住时禁用 hover 动画（否则会跟拖动抢 transform）
    4) 松手时给一个"弹性落地 + 星星迸射"的反馈 */
 const DECO_KEY="starPlanner.decoPos";
+/* 摆位坐标的版本。
+   v1 = 屏幕坐标（旧：星星人钉在屏幕上）
+   v2 = 文档坐标（新：星星人贴在页面上，跟着滚）
+   换了坐标含义就必须升版本，否则会把老位置拿来当新坐标用，
+   星星人会整片错位、正好压在卡片上挡住点击。旧版本这里直接作废、重新摆位。 */
+const DECO_VER=2;
 let decoInit=false;
 
 function loadDecoPos(){
-  /* 优先用主数据里的摆位（跟着云端来的），没有再退回本机记录 */
-  try{ if(S&&S.deco&&typeof S.deco==="object"&&Object.keys(S.deco).length) return S.deco; }catch(e){}
-  try{ const v=JSON.parse(localStorage.getItem(DECO_KEY)||"{}"); return (v&&typeof v==="object")?v:{}; }
-  catch(e){ return {}; }
+  try{
+    if(S&&S.deco&&typeof S.deco==="object"&&S.deco.v===DECO_VER&&S.deco.p) return S.deco.p;
+  }catch(e){}
+  try{
+    const v=JSON.parse(localStorage.getItem(DECO_KEY)||"{}");
+    if(v&&typeof v==="object"&&v.v===DECO_VER&&v.p) return v.p;
+  }catch(e){}
+  return {};
 }
 function saveDecoPos(){
-  const out={};
+  const p={};
   document.querySelectorAll(".deco").forEach(el=>{
-    out[el.dataset.key]={x:parseInt(el.style.left||"-9999"),y:parseInt(el.style.top||"-9999")};
+    p[el.dataset.key]={x:parseInt(el.style.left||"-9999"),y:parseInt(el.style.top||"-9999")};
   });
-  try{ localStorage.setItem(DECO_KEY,JSON.stringify(out)); }catch(e){}
+  const pack={v:DECO_VER,p:p};
+  try{ localStorage.setItem(DECO_KEY,JSON.stringify(pack)); }catch(e){}
   /* 同时写进主数据，这样换设备时摆位也跟着同步过去 */
   try{
-    S.deco=out;
+    S.deco=pack;
     const so=S.meta&&S.meta.updatedAt||0;
     /* deco 不影响业务数据，用独立时间戳避免把"数据已同步"的假象盖掉 */
     if(so) { try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(_){} }
   }catch(e){}
 }
+/* 星星人是"贴在页面上"的，坐标一律用文档坐标（含滚动偏移），
+   不是屏幕坐标。这一层负责屏幕坐标 ↔ 层内坐标的转换。 */
+function decoLayerEl(){ return document.getElementById("decoLayer"); }
+function decoOrigin(){
+  const L=decoLayerEl();
+  if(!L) return {x:0,y:0};
+  const r=L.getBoundingClientRect();
+  return {x:r.left+window.scrollX, y:r.top+window.scrollY};
+}
+/* 文档的可滚动范围：星星人最多只能贴到边缘，不会被拖到虚空中 */
+function decoBounds(){
+  return {
+    w:Math.max(document.documentElement.scrollWidth||0, window.innerWidth),
+    h:Math.max(document.documentElement.scrollHeight||0,
+                document.body.scrollHeight||0, window.innerHeight)
+  };
+}
+/* 必须等星星人图片解码出来再摆位。
+   图片是内嵌 base64 的，但 <img> 的宽度仍要等浏览器算出来——
+   没等到的话 getBoundingClientRect().width 是 0，
+   默认位置就会整整偏出一个身位，正好压在任务列表上挡住点击。 */
+function decoImagesReady(){
+  const imgs=[...document.querySelectorAll(".deco")];
+  return Promise.all(imgs.map(img=>{
+    if(img.complete&&img.naturalWidth) return Promise.resolve();
+    return new Promise(res=>{
+      img.addEventListener("load",res,{once:true});
+      img.addEventListener("error",res,{once:true});
+      /* 兜底：万一事件因为时序错过了，最多等 1.5 秒就开工 */
+      setTimeout(res,1500);
+    });
+  }));
+}
 /* 首次进来：把星星人放到各自卡片的角上（沿用原来的默认位） */
 function decoPlaceDefaults(){
   const saved=loadDecoPos();
+  const O=decoOrigin(), B=decoBounds();
   /* 默认位：挂在卡片外侧的空白处，不压住文字。
      ax: 靠哪一侧；off: 离卡片边缘多远；dy: 相对锚点顶部的偏移 */
   const defs=[
@@ -901,28 +1028,33 @@ function decoPlaceDefaults(){
   ];
   defs.forEach(d=>{
     const el=document.querySelector(d.sel); if(!el) return;
-    const box=el.getBoundingClientRect();
+    const r0=el.getBoundingClientRect();
+    /* 宽度兜底：万一这时图片还没量出来，用宽高比算一个可靠的宽度 */
+    const bw=r0.width||(el.naturalWidth&&el.naturalHeight?r0.height*el.naturalWidth/el.naturalHeight:89);
+    const bh=r0.height||98;
     const anc=document.querySelector(d.anchor);
     const key=d.sel.slice(1);
     if(saved[key]&&saved[key].x>-9000){
       el.style.left=saved[key].x+"px"; el.style.top=saved[key].y+"px";
       el.style.right="auto"; return;
     }
-    /* 默认位置：以锚点元素为参照，落在卡片边框外 */
+    /* 默认位置：以锚点元素为参照，落在卡片边框外。
+       注意用文档坐标（rect + scroll），这样就算页面已经滚过一段，
+       星星人还是会准准地挂在那张卡片旁边。 */
     let x,y;
     const r=(anc&&anc.getBoundingClientRect)?anc.getBoundingClientRect():null;
     if(r){
-      /* 靠右：贴到卡片右边缘再往右挪 off；靠左：同理往左挪。
-         这样星星人挂在边框外，不会盖住卡片里的文字。 */
-      x = (d.ax==="right") ? (r.right+d.off) : (r.left-d.off-box.width);
-      y = r.top+d.dy;
+      x = (d.ax==="right") ? (r.right+d.off) : (r.left-d.off-bw);
+      y = r.top+d.dy+window.scrollY;
     }else{
-      x = (d.ax==="right") ? (window.innerWidth-box.width-24) : 24;
-      y = 150+d.dy;
+      x = (d.ax==="right") ? (window.innerWidth-bw-24) : 24;
+      y = 150+d.dy+window.scrollY;
     }
-    /* 保证有一半身体露在屏幕内，看起来像是"挂在边上"而不是消失 */
-    x=Math.max(-box.width*0.45,Math.min(x,window.innerWidth-box.width*0.55));
-    y=Math.max(4,Math.min(y,window.innerHeight-box.height*0.5));
+    /* 转成层内坐标 */
+    x-=O.x; y-=O.y;
+    /* 留一点身体在框内，别整个滑出去 */
+    x=Math.max(-bw*0.45,Math.min(x,B.w-bw*0.55-O.x));
+    y=Math.max(-O.y+4,Math.min(y,B.h-bh*0.5-O.y));
     el.style.left=Math.round(x)+"px"; el.style.top=Math.round(y)+"px";
     el.style.right="auto";
   });
@@ -958,8 +1090,10 @@ function decoShowHint(){
   try{ localStorage.setItem("starPlanner.decoHinted","1"); }catch(e){}
   setTimeout(()=>h.remove(),6200);
 }
-function initDeco(){
+async function initDeco(){
   if(decoInit||!document.querySelector(".deco")) return;
+  await decoImagesReady();
+  if(decoInit||!document.querySelector(".deco")) return;   // 期间可能已初始化过
   decoPlaceDefaults();
 
   let drag=null;
@@ -967,19 +1101,22 @@ function initDeco(){
     el.addEventListener("pointerdown",e=>{
       if(e.button!==undefined&&e.button!==0) return;
       e.preventDefault();
+      const O=decoOrigin();
       const r=el.getBoundingClientRect();
-      drag={el,dx:e.clientX-r.left,dy:e.clientY-r.top,sx:e.clientX,sy:e.clientY,moved:false,t0:Date.now()};
+      /* 换算成层内坐标：按住点相对星星人左上角的偏移 */
+      drag={el,dx:(e.pageX-O.x)-parseInt(el.style.left||"0"),
+                dy:(e.pageY-O.y)-parseInt(el.style.top||"0"),
+            sx:e.pageX,sy:e.pageY,moved:false,t0:Date.now()};
       el.classList.add("dragging"); el.classList.remove("drop");
       try{ el.setPointerCapture(e.pointerId); }catch(_){}
-      /* 按住的瞬间：记下"没动"的位置用于判断是否只是点击 */
-      drag.ox=parseInt(el.style.left||"0"); drag.oy=parseInt(el.style.top||"0");
     });
     el.addEventListener("pointermove",e=>{
       if(!drag||drag.el!==el) return;
       e.preventDefault();
-      const nx=e.clientX-drag.dx, ny=e.clientY-drag.dy;
-      if(Math.abs(e.clientX-drag.sx)>3||Math.abs(e.clientY-drag.sy)>3) drag.moved=true;
-      /* 稍微越过边界也允许，松手时再夹回来 */
+      const O=decoOrigin();
+      /* pageX/pageY 已经是文档坐标，星星人跟着页面走就靠它 */
+      const nx=e.pageX-O.x-drag.dx, ny=e.pageY-O.y-drag.dy;
+      if(Math.abs(e.pageX-drag.sx)>3||Math.abs(e.pageY-drag.sy)>3) drag.moved=true;
       el.style.left=nx+"px"; el.style.top=ny+"px"; el.style.right="auto";
     });
     const finish=e=>{
@@ -988,10 +1125,12 @@ function initDeco(){
       try{ el.releasePointerCapture(e.pointerId); }catch(_){}
       el.classList.remove("dragging");
       drag=null;
-      /* 夹回可视区 */
+      /* 夹回文档范围（不再夹到"当前屏幕"，那样才是把星星人钉死） */
       const r=el.getBoundingClientRect();
-      const x=Math.max(-r.width*.35,Math.min(parseInt(el.style.left),window.innerWidth-r.width*.65));
-      const y=Math.max(4,Math.min(parseInt(el.style.top),window.innerHeight-24));
+      const O=decoOrigin(), B=decoBounds();
+      const maxX=B.w-O.x-r.width*0.65, maxY=B.h-O.y-r.height*0.5;
+      const x=Math.max(-r.width*.35,Math.min(parseInt(el.style.left),maxX));
+      const y=Math.max(-O.y+4,Math.min(parseInt(el.style.top),maxY));
       el.style.left=Math.round(x)+"px"; el.style.top=Math.round(y)+"px";
       saveDecoPos();
       if(wasMoved){
@@ -1016,15 +1155,14 @@ function initDeco(){
     });
   });
   decoShowHint();
-  /* 窗口尺寸变化后，把跑到屏幕外的星星人拉回来 */
+  /* 窗口变窄后，把被挤出文档的星星人拉回边界内（不影响滚动方向的位置） */
   window.addEventListener("resize",()=>{
+    const O=decoOrigin(), B=decoBounds();
     document.querySelectorAll(".deco").forEach(el=>{
+      const x=parseInt(el.style.left||"0"), y=parseInt(el.style.top||"0");
       const r=el.getBoundingClientRect();
-      if(r.right<20||r.left>window.innerWidth-20||r.bottom<0||r.top>window.innerHeight-10){
-        el.style.left=Math.max(8,Math.min(parseInt(el.style.left||"0")||20,window.innerWidth-r.width-8))+"px";
-        el.style.top=Math.max(8,Math.min(parseInt(el.style.top||"0")||130,window.innerHeight-r.height-8))+"px";
-        saveDecoPos();
-      }
+      const nx=Math.max(-r.width*.35,Math.min(x,B.w-O.x-r.width*0.65));
+      if(nx!==x||y<-O.y+4){ el.style.left=Math.round(nx)+"px"; saveDecoPos(); }
     });
   });
 }
@@ -1052,6 +1190,12 @@ $("#addTask").onclick=()=>{
 /* 任务/习惯输入框：输入后回车即添加 */
 $("#taskInput").onkeydown=e=>{if(e.key==="Enter"){$("#addTask").click();e.preventDefault();}};
 $("#taskList").onclick=e=>{
+  const p=e.target.closest(".pick");
+  if(p){
+    const id=p.dataset.id;
+    multiSel.has(id)?multiSel.delete(id):multiSel.add(id);
+    renderTasks(); return;
+  }
   const c=e.target.closest(".check"), d=e.target.closest(".del");
   if(!c&&!d) return;
   const i=+(c||d).dataset.i, arr=day(viewDate).tasks, t=arr[i];
@@ -1070,6 +1214,12 @@ $("#taskList").onclick=e=>{
     });
     toast("已删除："+esc(n));
   }
+};
+$("#btnMulti").onclick=()=>{
+  multiMode=!multiMode;
+  multiSel.clear();
+  renderTasks();
+  toast(multiMode?"已进入批量模式：勾左边的方块，再点「标记完成」或「删除选中」":"已退出批量模式");
 };
 $("#btnRoll").onclick=()=>{
   const y=todayKey(addDays(new Date(),-1)); const yd=peekDay(y);
@@ -1240,15 +1390,24 @@ $("#btnHelp").onclick=()=>{
 "⑥ 月视图",
 "点日历上的任意一天可以回看那天；🌟=全部完成 ⭐=过半 ☆=部分完成。",
 "",
-"⑦ 星星人可以玩",
-"下面三只星星人能用鼠标按住拖着走。",
+"⑦ 批量完成 / 批量删除",
+"点待办卡片右上角「☑️ 批量」进入勾选模式：",
+"· 每条前面出现小方块，勾上想操作的多条",
+"· 上面一排按钮：全选 / 清空选择 / 标记完成 / 取消完成 / 删除选中",
+"· 删掉的任务在别的设备上也会一起消失（不是只删本机）",
+"· 再点一次「批量」退出勾选模式",
+"",
+"⑧ 星星人可以玩",
+"下面三只星星人能用鼠标按住拖着走，它们是「贴在页面上」的——",
+"往下翻页面它们会跟着滚出去，滚回来还待在原处。",
 "· 鼠标移上去会轻轻上浮，按住会变亮、阴影变深（像被捏在手里）",
 "· 松手会弹一下，冒出小星星",
 "· 双击某一只 → 它自己弹回原来的位置",
 "· 摆好的位置会自动记住，换设备也带过去",
 "",
-"⑧ 打印 / PDF",
-"点「打印 / PDF」，在弹窗里选「另存为 PDF」，会得到一页干净的纸质计划表。"
+"⑨ 打印 / PDF",
+"点「打印 / PDF」，在弹窗里选「另存为 PDF」，会得到一页干净的纸质计划表。",
+"（打印时星星人、批量条、按钮都不会印上去）"
 ].join("\n"));
 };
 
@@ -1331,79 +1490,22 @@ async function makeSnapshot(){
 }
 if($("#btnShare")) $("#btnShare").onclick=makeSnapshot;
 
-/* ================= 同步：绑定面板（网页版用） =================
-   网页版不能内置 Token（页面是公开的，谁打开都能看到源码）。
-   所以未绑定时给一个输入框：粘一次 Token，存在本机浏览器，之后全自动。
-   Token 只留在使用者自己的设备上，不会出现在任何公开文件里。 */
-function bindPanelHTML(){
-  return `<div id="bindPanel" style="display:none;margin-top:14px;padding:16px 18px;
-      background:rgba(255,214,102,.07);border:1px solid rgba(255,214,102,.28);border-radius:14px">
-    <div style="font-size:13px;color:#ffe9a8;line-height:1.8">
-      <b>🔗 第一次使用：粘一次「连接码」，以后全自动</b><br>
-      <span style="color:#cfc6b8;font-size:12px">
-        粘一次就好，只存在这台设备的浏览器里，之后自动同步、关机也不丢。<br>
-        换手机/换电脑就在那台设备上再粘一次，数据会自动合到一起。
-      </span>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        <input type="text" id="bindUser" placeholder="GitHub 用户名"
-          style="width:170px;font-size:12px">
-        <input type="text" id="bindToken" placeholder="粘贴 ghp_ 开头的连接码"
-          style="flex:1;min-width:200px;font-size:12px">
-        <button class="btn" id="btnBind" style="padding:0 16px">连上</button>
-      </div>
-      <div id="bindMsg" style="margin-top:8px;font-size:12px;color:#cfc6b8"></div>
-    </div>
-  </div>`;
-}
-function showBindPanel(user){
-  const old=document.getElementById("bindPanel");
-  if(old) old.style.display="block";
-  const bu=document.getElementById("bindUser");
-  if(bu&&user&&!bu.value) bu.value=user;
-  const inp=document.getElementById("bindToken");
-  if(inp&&!inp.dataset.bound){
-    inp.dataset.bound="1";
-    inp.onkeydown=e=>{ if(e.key==="Enter") doBind(); };
-  }
-  const btn=document.getElementById("btnBind");
-  if(btn&&!btn.dataset.bound){ btn.dataset.bound="1"; btn.onclick=()=>doBind(); }
-}
-async function doBind(){
-  const inp=document.getElementById("bindToken");
-  const msg=document.getElementById("bindMsg");
-  if(!inp) return;
-  const tk=inp.value.trim();
-  if(!tk||tk.indexOf("gh")!==0){
-    if(msg){ msg.innerHTML="<span style='color:#ff9a9a'>连接码不对，应该是一串 ghp_ 开头的字符</span>"; }
-    inp.focus(); return;
-  }
-  /* 用户名：优先用填的，其次本机已存的，最后用预置的 */
-  const buIn=document.getElementById("bindUser");
-  const uIn=buIn?buIn.value.trim():"";
-  CFG.user=uIn||CFG.user||(PRESET_CFG&&PRESET_CFG.user)||"";
-  if(!CFG.user){
-    if(msg){ msg.innerHTML="<span style='color:#ff9a9a'>还要填一下 GitHub 用户名（就是连接码所属账号）</span>"; }
-    if(buIn) buIn.focus();
-    return;
-  }
-  CFG.token=tk;
-  if(msg){ msg.textContent="正在连接…"; }
-  try{ saveCfg(); }catch(e){}
-  showSyncReady(); setSyncUI("","连接中…");
-  try{
-    await ensureRepo();
-    await pullRemote();
-    await pushRemote();
-    setSyncUI("on","已同步");
-    const n=Object.keys(S.days||{}).length+S.habits.length+S.goals.length;
-    if(msg){ msg.innerHTML="<span style='color:#9be7a5'>✅ 连上了，以后全自动。"+(n?"已恢复 "+n+" 项数据。":"")+"</span>"; }
-    const bp=document.getElementById("bindPanel");
-    if(bp) setTimeout(()=>{ bp.style.display="none"; },2600);
-    toast("✅ 云同步已连上，以后不用再管了");
-  }catch(e){
-    setSyncUI("","连接失败");
-    if(msg){ msg.innerHTML="<span style='color:#ff9a9a'>连不上："+esc((e&&e.message||"网络异常").slice(0,40))
-      +"<br>检查一下连接码有没有复制完整（别少了结尾几个字符）</span>"; }
+/* ================= 同步入口：全站只有一处 =================
+   连接码只在页面底部那张「☁️ 多端自动同步」卡片里填，
+   用的就是 #ghUser / #ghToken / #btnSaveCfg 那套表单。
+   早先在顶部工具条下还挂过一个一模一样的面板，两处并存很容易让人
+   搞不清该填哪一个（而且填了上面的下面不同步），现已统一成一处。 */
+function focusSyncCard(){
+  const card=document.querySelector(".card.cfg");
+  if(!card) return;
+  try{ card.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){}
+  const gu=$("#ghUser");
+  if(gu&&!gu.value) gu.value=(PRESET_CFG&&PRESET_CFG.user)||"";
+  const gt=$("#ghToken");
+  if(gt&&!gt.dataset.bound){
+    gt.dataset.bound="1";
+    gt.placeholder="粘贴 ghp_ 开头的连接码（只粘这一次）";
+    gt.onkeydown=e=>{ if(e.key==="Enter"){ const b=$("#btnSaveCfg"); if(b) b.click(); } };
   }
 }
 
@@ -1703,13 +1805,11 @@ window.addEventListener("unhandledrejection",e=>{
         if(!warned) toast("☁️ 云端已同步，多端自动保持一致");
       }).catch(()=>{});
     } else {
-      /* 网页版：没有内置 Token，给一个粘一次就能用的绑定入口 */
+      /* 没连上：露出底部那张同步卡片，并把光标/视线带过去。
+         全站只有那一个地方填连接码，不再另起一个面板。 */
       setSyncUI("","未连接");
-      const mount=document.getElementById("bindMount");
-      if(mount&&!mount.innerHTML.trim()) mount.innerHTML=bindPanelHTML();
       showSyncSetup();
-      showBindPanel(PRESET_CFG&&PRESET_CFG.user?PRESET_CFG.user:"");
-      setTimeout(()=>{ const bp=document.getElementById("bindPanel"); if(bp) bp.scrollIntoView({behavior:"smooth",block:"center"}); },700);
+      setTimeout(()=>{ try{ focusSyncCard(); }catch(e){ console.error(e); } },700);
     }
   }catch(e){ console.error(e); }
   renderAll();
@@ -1722,8 +1822,9 @@ window.addEventListener("unhandledrejection",e=>{
     /* 只读分享版：先把界面锁成只读，再做别的 */
     try{ roApply(); }
     catch(e){ console.error("[star-planner] 只读模式应用失败：",e); }
-    try{ initDeco(); }
-    catch(e){ console.error("[star-planner] 星星人初始化失败：",e); }
+    /* 星星人初始化内部会等图片加载，可以不等它 */
+    Promise.resolve().then(()=>initDeco())
+      .catch(e=>console.error("[star-planner] 星星人初始化失败：",e));
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot,{once:true});
   else boot();
