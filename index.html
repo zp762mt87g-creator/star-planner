@@ -293,6 +293,19 @@
     /* 输入框打印成"看起来是格子"，内容照常显示 */
     textarea,input{border-color:rgba(0,0,0,.15)!important;background:transparent!important;resize:none}
   }
+  /* 全景长图预览弹层（方案A：页面内大图，长按发微信 / 存相册） */
+  #shotModal{position:fixed;inset:0;z-index:120;display:flex;align-items:stretch;justify-content:center}
+  #shotModal[hidden]{display:none}
+  .shot-backdrop{position:absolute;inset:0;background:rgba(6,4,14,.92);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+  .shot-panel{position:relative;display:flex;flex-direction:column;width:100%;max-width:560px;box-sizing:border-box;
+    padding:14px 12px calc(14px + env(safe-area-inset-bottom))}
+  .shot-tip{flex:0 0 auto;color:var(--star2);font-size:14px;font-weight:600;text-align:center;padding:6px 8px 10px;line-height:1.5}
+  .shot-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;justify-content:center}
+  .shot-scroll img{width:100%;height:auto;display:block;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+  .shot-actions{flex:0 0 auto;display:flex;gap:12px;padding-top:14px}
+  .shot-btn{flex:1;padding:13px 0;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;
+    background:linear-gradient(135deg,var(--star3),var(--star2));color:#3a2a06}
+  .shot-btn.ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25)}
 </style>
 </head>
 <body>
@@ -1584,22 +1597,19 @@ async function genLongShot(scale){
     if(cfg) cfg.style.display=prevDisp;
   }
 }
-/* dataURL → File，供 Web Share 调起系统分享面板（手机一键存相册）使用 */
-function dataUrlToFile(dataUrl,name){
-  const m=dataUrl.match(/^data:(.*?);base64,(.*)$/);
-  if(!m) return null;
-  const mime=m[1]||"image/png", bin=atob(m[2]), n=bin.length;
-  const u8=new Uint8Array(n);
-  for(let i=0;i<n;i++) u8[i]=bin.charCodeAt(i);
-  return new File([u8],name,{type:mime});
+/* 全景长图预览弹层（方案A）：生成图后显示在页面内，
+   微信内长按图片即可「发送给朋友」/「收藏」，浏览器内长按可「存储图像」。
+   比系统分享面板可靠——微信对第三方网页的 navigator.share 图片常常不接收。 */
+function openShotModal(dataUrl){
+  const img=document.getElementById("shotImg"); if(img) img.src=dataUrl;
+  const modal=document.getElementById("shotModal"); if(modal) modal.hidden=false;
 }
-/* 是否触摸优先设备（手机/平板）：决定「长图保存」走系统分享还是下载。
-   桌面端直接下载成文件更直观；手机端只有系统分享面板能「存到相册」。 */
-function isCoarsePointer(){
-  try{ return matchMedia("(pointer:coarse)").matches || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent); }catch(e){ return false; }
+function closeShotModal(){
+  const modal=document.getElementById("shotModal"); if(modal) modal.hidden=true;
+  const img=document.getElementById("shotImg"); if(img) img.src="";
 }
 async function makeLongShot(){
-  const btn=$("#btnShare"); if(btn) btn.disabled=true;
+  const btn=document.getElementById("btnShare"); if(btn) btn.disabled=true;
   /* 生成期间不改按钮文案：改了会被一起截进长图里 */
   try{
     if(!window.__shot||!window.__shot.domToPng) throw new Error("长图引擎还没加载好，请稍等 1 秒再点");
@@ -1610,27 +1620,23 @@ async function makeLongShot(){
       console.warn("[star-planner] 2倍长图失败，降级 1 倍重试：",err);
       dataUrl=await genLongShot(1);          /* 画布超限（长页面）时降级 */
     }
-    const filename="星星人计划表-长图-"+todayKey()+".png";
-    const file=dataUrlToFile(dataUrl,filename);
-    /* 手机 + 支持文件分享：调起系统分享面板，选「存储到照片 / 保存到相册」即入库。
-       Web Share 必须在点击手势内触发；截图是异步的，若因激活失效失败会走降级。 */
-    if(file && isCoarsePointer() && navigator.canShare && navigator.canShare({files:[file]})){
-      try{
-        await navigator.share({files:[file], title:"星星人的计划表", text:"我的星星人计划表 ⭐"});
-        toast("📸 已调起分享，选「存储到照片 / 保存到相册」即可入库");
-        return;
-      }catch(e){
-        if(e&&e.name==="AbortError"){ toast("已取消分享"); return; } /* 用户主动取消，不降级 */
-        console.warn("[star-planner] 系统分享失败，降级下载：",e);
-      }
-    }
-    /* 降级：电脑端或不支持文件分享的环境 → 触发下载 / 预览，长按或到下载目录保存 */
-    const a=document.createElement("a");
-    a.href=dataUrl; a.download=filename; a.click();
-    toast(file?"📸 全景长图已生成，长按图片或到下载目录即可保存":"📸 全景长图已生成，长按即可保存");
+    openShotModal(dataUrl);
+    toast("📸 长按图片即可发送给微信好友 / 存到相册");
   }catch(e){ console.error(e); toast("生成失败："+(e.message||e)); }
   finally{ if(btn) btn.disabled=false; }
 }
+/* 弹层按钮：保存图片（触发下载/存文件兜底）、关闭、点背景关闭 */
+(function(){
+  const save=document.getElementById("shotSave");
+  if(save) save.onclick=function(){
+    const img=document.getElementById("shotImg"), src=img&&img.src;
+    if(!src) return;
+    const a=document.createElement("a");
+    a.href=src; a.download="星星人计划表-长图-"+todayKey()+".png"; a.click();
+  };
+  const close=document.getElementById("shotClose"); if(close) close.onclick=closeShotModal;
+  const bd=document.getElementById("shotBackdrop"); if(bd) bd.onclick=closeShotModal;
+})();
 if($("#btnShare")) $("#btnShare").onclick=makeLongShot;
 
 /* ================= 标题可编辑 =================
@@ -3737,5 +3743,17 @@ window.__shot={domToPng:domToPng,domToCanvas:domToCanvas};
 
 window.__shot={domToPng:domToPng,domToCanvas:domToCanvas};
 </script>
+<!-- 全景长图预览弹层（方案A）：生成图后弹出，长按图片即可发送给微信好友 / 存相册 -->
+<div class="no-print" id="shotModal" hidden>
+  <div class="shot-backdrop" id="shotBackdrop"></div>
+  <div class="shot-panel">
+    <div class="shot-tip">📲 长按上方图片 → 发送给朋友 / 存到相册</div>
+    <div class="shot-scroll"><img id="shotImg" alt="星星人计划表长图"></div>
+    <div class="shot-actions">
+      <button class="shot-btn" id="shotSave" type="button">💾 保存图片</button>
+      <button class="shot-btn ghost" id="shotClose" type="button">关闭</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
