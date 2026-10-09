@@ -312,7 +312,7 @@
     <button class="tb primary" id="btnToday">📅 回到今天</button>
     <button class="tb" id="btnPrint">🖨️ 打印 / PDF</button>
     <button class="tb" id="btnSync"><span class="dot" id="syncDot"></span><span id="syncTxt">☁️ 云同步</span></button>
-    <button class="tb no-print" id="btnShare" title="把整个页面拍成一张全景长图（PNG），直接发给朋友看">📸 分享长图</button>
+    <button class="tb no-print" id="btnShare" title="生成全景长图（PNG），手机可一键存到相册 / 电脑直接下载">📸 分享长图</button>
     <button class="tb" id="btnHelp">❓ 怎么用</button>
     <input type="file" id="fileImport" accept=".json,.html,application/json,text/html" style="display:none">
     <!-- 应急入口：正常情况下自动同步，不需要手动操作；仅在异常时可用 -->
@@ -1584,6 +1584,20 @@ async function genLongShot(scale){
     if(cfg) cfg.style.display=prevDisp;
   }
 }
+/* dataURL → File，供 Web Share 调起系统分享面板（手机一键存相册）使用 */
+function dataUrlToFile(dataUrl,name){
+  const m=dataUrl.match(/^data:(.*?);base64,(.*)$/);
+  if(!m) return null;
+  const mime=m[1]||"image/png", bin=atob(m[2]), n=bin.length;
+  const u8=new Uint8Array(n);
+  for(let i=0;i<n;i++) u8[i]=bin.charCodeAt(i);
+  return new File([u8],name,{type:mime});
+}
+/* 是否触摸优先设备（手机/平板）：决定「长图保存」走系统分享还是下载。
+   桌面端直接下载成文件更直观；手机端只有系统分享面板能「存到相册」。 */
+function isCoarsePointer(){
+  try{ return matchMedia("(pointer:coarse)").matches || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent); }catch(e){ return false; }
+}
 async function makeLongShot(){
   const btn=$("#btnShare"); if(btn) btn.disabled=true;
   /* 生成期间不改按钮文案：改了会被一起截进长图里 */
@@ -1596,11 +1610,24 @@ async function makeLongShot(){
       console.warn("[star-planner] 2倍长图失败，降级 1 倍重试：",err);
       dataUrl=await genLongShot(1);          /* 画布超限（长页面）时降级 */
     }
+    const filename="星星人计划表-长图-"+todayKey()+".png";
+    const file=dataUrlToFile(dataUrl,filename);
+    /* 手机 + 支持文件分享：调起系统分享面板，选「存储到照片 / 保存到相册」即入库。
+       Web Share 必须在点击手势内触发；截图是异步的，若因激活失效失败会走降级。 */
+    if(file && isCoarsePointer() && navigator.canShare && navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file], title:"星星人的计划表", text:"我的星星人计划表 ⭐"});
+        toast("📸 已调起分享，选「存储到照片 / 保存到相册」即可入库");
+        return;
+      }catch(e){
+        if(e&&e.name==="AbortError"){ toast("已取消分享"); return; } /* 用户主动取消，不降级 */
+        console.warn("[star-planner] 系统分享失败，降级下载：",e);
+      }
+    }
+    /* 降级：电脑端或不支持文件分享的环境 → 触发下载 / 预览，长按或到下载目录保存 */
     const a=document.createElement("a");
-    a.href=dataUrl;
-    a.download="星星人计划表-长图-"+todayKey()+".png";
-    a.click();
-    toast("📸 全景长图已生成，直接发给朋友即可");
+    a.href=dataUrl; a.download=filename; a.click();
+    toast(file?"📸 全景长图已生成，长按图片或到下载目录即可保存":"📸 全景长图已生成，长按即可保存");
   }catch(e){ console.error(e); toast("生成失败："+(e.message||e)); }
   finally{ if(btn) btn.disabled=false; }
 }
