@@ -242,6 +242,16 @@
     /* 手机上星星人整体缩小一号，少占地方 */
     .deco-tr{height:84px}.deco-tl{height:80px}.deco-hr{height:90px}
     .deco-p4{height:78px}.deco-p5{height:72px}.deco-p6{height:80px}.deco-p7{height:84px}
+    /* 手机 hero 改两行式：第一行 图+标题，日期单独成行横排，不再挤标题 */
+    .hero{flex-wrap:wrap;row-gap:2px;column-gap:16px;padding:20px 22px 14px}
+    .star-man{height:100px;max-width:100px;margin-top:-4px}
+    .hero>div{flex:1;min-width:0}
+    .hero h1{font-size:22px;letter-spacing:.5px;text-wrap:balance}
+    .hero p{font-size:12.5px;line-height:1.7;margin-top:5px}
+    .hero .date{flex-basis:100%;margin-left:0;text-align:left;margin-top:10px;padding-top:10px;
+      border-top:1px dashed rgba(255,210,110,.28);
+      display:flex;align-items:baseline;gap:8px;font-size:12px;line-height:1.4}
+    .hero .date b{display:inline;font-size:17px}
   }
 
   /* 轻提示 toast */
