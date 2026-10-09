@@ -240,13 +240,102 @@
 
   .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;line-height:1.8}
 
+  /* ===== A1：完成时「就近星星人跳一下」（必须写在 .deco:hover 之后，否则被 hover 覆盖） ===== */
+  @keyframes decoCheer{
+    0%{transform:translateY(0) scale(1,1)}
+    22%{transform:translateY(-18px) scale(.94,1.08) rotate(-2deg)}
+    46%{transform:translateY(0) scale(1.08,.9)}
+    68%{transform:translateY(-7px) scale(.98,1.03)}
+    100%{transform:translateY(0) scale(1,1)}
+  }
+  .deco.cheer{animation:decoCheer .62s cubic-bezier(.3,1.3,.5,1)}
+
+  /* ===== A3/A4：撒花庆祝浮层（不打印、不进长图） ===== */
+  #celebrate{position:fixed;inset:0;pointer-events:none;z-index:118;overflow:hidden}
+  #celebrate .cf{position:absolute;top:-24px;width:9px;height:9px;border-radius:2px;
+    animation:cfFall linear forwards}
+  @keyframes cfFall{
+    0%{transform:translateY(0) rotate(0deg);opacity:1}
+    100%{transform:translateY(78vh) rotate(720deg);opacity:0}
+  }
+  #celebrate .cfMsg{position:absolute;left:50%;top:24%;transform:translate(-50%,-50%) scale(.9);
+    background:linear-gradient(135deg,rgba(60,42,10,.97),rgba(40,28,6,.97));
+    color:var(--star2);border:1px solid rgba(255,210,110,.55);border-radius:18px;
+    padding:16px 30px;font-size:17px;font-weight:800;letter-spacing:.5px;text-align:center;
+    box-shadow:0 16px 44px rgba(0,0,0,.6);opacity:0;animation:cfMsgIn .5s .05s ease forwards;
+    line-height:1.5;max-width:82vw}
+  #celebrate .cfMsg small{display:block;font-size:12.5px;font-weight:600;color:var(--muted);
+    margin-top:6px;letter-spacing:.2px}
+  @keyframes cfMsgIn{to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+
+  /* ===== A3：里程碑进度条（常驻在统计卡下方，只占一条细横条） ===== */
+  .mile{margin:-4px 0 18px;display:flex;align-items:center;gap:11px;
+    background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:14px;
+    padding:10px 16px}
+  .mile .mIco{font-size:16px;flex:0 0 auto}
+  .mile .mTxt{font-size:12.5px;font-weight:700;color:var(--star2);flex:1;min-width:0}
+  .mile .mTxt small{color:var(--muted);font-weight:600;margin-left:7px;font-size:11.5px}
+  .mile .mDots{display:flex;gap:5px;flex:0 0 auto}
+  .mile .mDots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18)}
+  .mile .mDots i.on{background:var(--star);box-shadow:0 0 8px var(--star)}
+
+  /* ===== F：计划 / 回顾 两页标签 ===== */
+  .tabs{display:inline-flex;gap:5px;padding:4px;background:rgba(255,255,255,.05);
+    border:1px solid var(--line);border-radius:13px;margin-bottom:14px;max-width:100%}
+  .tabs button{border:none;background:transparent;cursor:pointer;font-family:inherit;
+    padding:8px 20px;border-radius:10px;font-size:13px;font-weight:800;color:var(--muted);
+    letter-spacing:.3px;transition:.18s;white-space:nowrap}
+  .tabs button:hover{color:var(--star2)}
+  .tabs button.on{background:linear-gradient(135deg,var(--star),var(--starline));color:#3a2a06;
+    box-shadow:0 4px 14px rgba(255,190,48,.3)}
+
+  /* ===== F：回顾页内容 ===== */
+  .rvgrid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .rvsect{display:flex;flex-direction:column;gap:24px}
+  .heat{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .heat .hd{font-size:10.5px;color:var(--muted);text-align:center;padding-bottom:3px}
+  .heat .hc{aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;
+    font-size:10.5px;font-weight:700;color:rgba(255,255,255,.85);background:rgba(255,255,255,.035);
+    cursor:pointer;transition:.15s}
+  .heat .hc:hover{outline:1px solid var(--starline)}
+  .heat .hc.sel{outline:2px solid var(--star)}
+  .heat .hc.today{box-shadow:0 0 0 1.5px var(--star) inset}
+  .heat .hc.future{background:transparent;color:rgba(255,255,255,.24);cursor:default}
+  .heatLegend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:12px}
+  .heatLegend span{display:inline-flex;align-items:center;gap:5px}
+  .heatLegend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+  .trend{display:flex;align-items:flex-end;gap:4px;height:72px;padding-top:4px}
+  .trend i{flex:1;border-radius:3px 3px 0 0;min-height:3px;transition:.2s;
+    background:linear-gradient(180deg,var(--star),var(--starline));opacity:.92}
+  .trendAxis{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:7px}
+  .kv{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;
+    padding:9px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
+  .kv:last-child{border-bottom:none}
+  .kv b{color:var(--star2);font-weight:800;font-size:13.5px;flex:0 0 auto}
+  .rvempty{color:var(--muted);font-size:12.5px;text-align:center;padding:22px 0}
+
+  /* ===== C2：悄悄扩大点击热区（视觉不变，≥44px 才好点） ===== */
+  .check,.pick,.task .del,.habit .del,.habit .fill{position:relative}
+  .check::before,.pick::before,.task .del::before,.habit .del::before,.habit .fill::before{
+    content:"";position:absolute;inset:-10px;border-radius:50%}
+  .hbtn{position:relative}
+  .hbtn::before{content:"";position:absolute;inset:-8px -4px}
+  /* H2：补打卡小按钮 */
+  .habit .fill{font-size:10.5px;font-weight:800;color:var(--star2);cursor:pointer;
+    border:1px solid rgba(255,214,102,.45);border-radius:8px;padding:1px 6px;
+    background:rgba(255,214,102,.10);flex:0 0 auto;line-height:1.5}
+  .habit .fill:hover{background:rgba(255,214,102,.22)}
+
+  /* ===== 里程碑/回顾 相关元素在打印与长图里的处理 ===== */
+  .mile{page-break-inside:avoid}
+
   @media(max-width:900px){
     .stats{grid-template-columns:repeat(2,1fr)}
     .grid{grid-template-columns:1fr}
     .week{grid-template-columns:repeat(2,1fr)}
-    /* 手机上星星人整体缩小一号，少占地方 */
-    .deco-tr{height:84px}.deco-tl{height:80px}.deco-hr{height:90px}
-    .deco-p4{height:78px}.deco-p5{height:72px}.deco-p6{height:80px}.deco-p7{height:84px}
+    /* 手机上星星人整体缩小一号，少占地方（再小一档，骑在卡片边角上不压字） */
+    .deco-tr{height:56px}.deco-tl{height:54px}.deco-hr{height:62px}
+    .deco-p4{height:52px}.deco-p5{height:48px}.deco-p6{height:54px}.deco-p7{height:56px}
     /* 手机 hero 改两行式：第一行 图+标题，日期单独成行横排，不再挤标题 */
     .hero{flex-wrap:wrap;row-gap:2px;column-gap:16px;padding:20px 22px 14px}
     .star-man{height:100px;max-width:100px;margin-top:-4px}
@@ -257,15 +346,29 @@
       border-top:1px dashed rgba(255,210,110,.28);
       display:flex;align-items:baseline;gap:8px;font-size:12px;line-height:1.4}
     .hero .date b{display:inline;font-size:17px}
+    /* C1：iOS 上输入框字号 <16px 会触发自动缩放（每次点输入框页面就"跳一下"）。
+       只在手机断点里提到 16px，桌面排版完全不受影响。 */
+    input[type="text"],textarea,select{font-size:16px!important}
+    /* C5：周计划在手机上由 2 列改纵向单列，一屏扫完、不再来回找 */
+    .week{display:flex;flex-direction:column}
+    .wday{flex-direction:row;align-items:center;gap:10px;min-height:0}
+    .wday .d{width:40px;flex:0 0 auto;text-align:left}
+    .wday textarea{min-height:52px}
+    /* F：回顾页在手机上收成单列 */
+    .rvgrid{grid-template-columns:1fr}
+    /* A3 里程碑条在手机上允许文字换行 */
+    .mile{flex-wrap:wrap;row-gap:6px}
+    .mile .mTxt{flex-basis:100%;order:-1}
   }
 
-  /* 轻提示 toast */
-  #toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,24px);
+  /* 轻提示 toast —— C3：键盘弹出时自动上浮（--kb 由 JS 按可视视口算出），
+     否则手机上打字时提示会被软键盘完全盖住，看不到任何反馈 */
+  #toast{position:fixed;left:50%;bottom:calc(34px + var(--kb,0px));transform:translate(-50%,24px);
     background:linear-gradient(135deg,rgba(60,42,10,.96),rgba(40,28,6,.96));
     color:var(--star2);border:1px solid rgba(255,210,110,.45);border-radius:999px;
     padding:11px 24px;font-size:14px;font-weight:600;letter-spacing:.3px;
     box-shadow:0 10px 30px rgba(0,0,0,.55);opacity:0;pointer-events:none;
-    transition:opacity .22s,transform .22s;z-index:99;max-width:88vw;text-align:center}
+    transition:opacity .22s,transform .22s,bottom .18s;z-index:99;max-width:88vw;text-align:center}
   #toast.show{opacity:1;transform:translate(-50%,0)}
   .stats .stat{cursor:help}
 
@@ -282,13 +385,17 @@
          /* 多层渐变在"不勾选背景图形"时会被浏览器丢掉（白纸白字看不清），
             打印时改用纯色深底，纯色配合 print-color-adjust 能稳定打出来 */
          background:#161026!important}
-    .sky,.toolbar,.no-print,.foot,.cfg,.decoHint,.spark,#toast,.deco{display:none!important}
+    .sky,.toolbar,.no-print,.foot,.cfg,.decoHint,.spark,#toast,.deco,#celebrate,.tabs{display:none!important}
     .wrap{max-width:none;padding:24px}
     .card{box-shadow:none;page-break-inside:avoid}
-    /* A4 纸宽会触发手机版式（单列/两列统计），打印时强制回到桌面版式 */
+    /* A4 纸宽会触发手机版式（单列/两列统计），打印时强制回到桌面版式。
+       display 也要一起强制回来——手机端把 .week 改成了 flex 纵向，
+       只写 grid-template-columns 是压不住 flex 的。 */
     .grid{grid-template-columns:1fr 1fr!important}
     .stats{grid-template-columns:repeat(4,1fr)!important}
-    .week{grid-template-columns:repeat(7,1fr)!important}
+    .week{display:grid!important;grid-template-columns:repeat(7,1fr)!important}
+    .wday{flex-direction:column!important;min-height:96px}
+    .rvgrid{grid-template-columns:1fr 1fr!important}
     .cell{min-height:44px}
     /* 输入框打印成"看起来是格子"，内容照常显示 */
     textarea,input{border-color:rgba(0,0,0,.15)!important;background:transparent!important;resize:none}
@@ -303,8 +410,10 @@
   .shot-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;justify-content:center}
   .shot-scroll img{width:100%;height:auto;display:block;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
   .shot-actions{flex:0 0 auto;display:flex;gap:12px;padding-top:14px}
+  /* 注意：只用已定义的变量。--star3 从未在 :root 里定义，用它会让整条 background 失效 */
   .shot-btn{flex:1;padding:13px 0;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;
-    background:linear-gradient(135deg,var(--star3),var(--star2));color:#3a2a06}
+    background-color:var(--star);
+    background:linear-gradient(135deg,var(--star),var(--star2));color:#3a2a06}
   .shot-btn.ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25)}
 </style>
 </head>
@@ -321,8 +430,14 @@
     <div class="date"><b id="bigDate">—</b><span id="weekday">—</span></div>
   </div>
 
+  <div class="tabs no-print" id="tabs">
+    <button id="tabPlan" class="on" type="button">🗓 计划</button>
+    <button id="tabReview" type="button">📊 回顾</button>
+  </div>
+
   <div class="toolbar no-print">
     <button class="tb primary" id="btnToday">📅 回到今天</button>
+    <button class="tb" id="btnUndo" title="撤销上一步修改（最多回退 3 步）">↶ 撤销</button>
     <button class="tb" id="btnPrint">🖨️ 打印 / PDF</button>
     <button class="tb" id="btnSync"><span class="dot" id="syncDot"></span><span id="syncTxt">☁️ 云同步</span></button>
     <button class="tb no-print" id="btnShare" title="生成全景长图（PNG），手机可一键存到相册 / 电脑直接下载">📸 分享长图</button>
@@ -338,7 +453,10 @@
   </div>
 
   <div class="stats" id="stats"></div>
+  <div class="mile no-print" id="mile"></div>
 
+  <!-- ================= 「计划」页（原来的全部内容） ================= -->
+  <div id="pagePlan">
   <div class="grid">
     <div style="display:flex;flex-direction:column;gap:24px">
       <div class="card">
@@ -389,6 +507,7 @@
     <div class="cal" id="cal"></div>
   </div>
 
+  <!-- 同步卡属于「计划」页（回顾页只展示成绩，不放设置） -->
   <div class="card cfg no-print">
     <h2>☁️ 多端自动同步 <span class="tag" id="syncTag2">未开启</span></h2>
     <div id="syncReady" style="display:none">
@@ -405,7 +524,7 @@
         你的数据存放在GitHub 私密仓库 <code id="repoEcho">—</code> 的
         <code id="fileEcho">—</code> 文件里，只有你自己能看到。
       </p>
-      <p class="hint" style="margin-top:6px;opacity:.7" id="syncLog" style="display:none"></p>
+      <p class="hint" style="margin-top:6px;opacity:.7" id="syncLog"></p>
     </div>
 
     <div id="syncSetup">
@@ -436,7 +555,45 @@
         连上之后不用再来了。仓库名和文件名会自动处理，你不用管。
       </p>
     </div>
-  </div>
+  </div><!-- /同步卡（plan 页设置卡） -->
+  </div><!-- /pagePlan（同步卡之后结束） -->
+
+  <!-- ================= 「回顾」页（新增，全部内容收纳在这里） ================= -->
+  <div id="pageReview" style="display:none">
+    <div class="rvgrid">
+      <div class="rvsect">
+        <div class="card">
+          <h2>📅 月历热力图 <span class="tag" id="rvCalTag"></span>
+            <button class="hbtn no-print" id="rvPrevMonth">◀</button>
+            <button class="hbtn no-print" id="rvNextMonth">▶</button></h2>
+          <div class="heat" id="rvHeat"></div>
+          <div class="heatLegend">
+            <span><i style="background:rgba(255,214,102,.06)"></i>几乎没做</span>
+            <span><i style="background:rgba(255,214,102,.26)"></i>做到一半</span>
+            <span><i style="background:rgba(255,214,102,.50)"></i>全部完成</span>
+            <span style="opacity:.7">空白=当天没有任务</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>📈 最近 14 天 <span class="tag">每天摘到的星星</span></h2>
+          <div class="trend" id="rvTrend"></div>
+          <div class="trendAxis" id="rvTrendAxis"></div>
+        </div>
+      </div>
+
+      <div class="rvsect">
+        <div class="card">
+          <h2>🏆 这段日子的收获</h2>
+          <div id="rvSummary"></div>
+        </div>
+        <div class="card">
+          <h2>🎯 目标进度一览 <span class="tag">点左侧推进</span></h2>
+          <div id="rvGoals"></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /pageReview -->
 
   <div class="foot">
     发布者vivi<br>
@@ -697,9 +854,64 @@ function save(){
   }
   try{ schedulePush(); }catch(e){}
 }
+/* ================= 撤销（H1） =================
+   commit 执行前先留一份完整快照（最多 3 步），点「↶ 撤销」即可回退。
+   ⚠️ 两个关键点：
+   1) 快照存的是 JSON 深拷贝，不含函数，恢复时整体替换 S；
+   2) 撤销「删除」时，被删项的墓碑（day.del / _hdel / _gdel）已经写进数据了，
+      若照原样恢复，repair() 与 mergeDay() 的「墓碑时间 ≥ 条目 ts」判定
+      会让它复活后立刻又消失。所以恢复时必须把被恢复项的时间戳抬到"现在"，
+      并且清掉对应的墓碑。 */
+var undoStack=[];
+var UNDO_MAX=3;
+function pushUndo(){
+  if(READONLY) return;
+  try{
+    undoStack.push(JSON.stringify(S));
+    if(undoStack.length>UNDO_MAX) undoStack.shift();
+  }catch(e){}
+  updateUndoBtn();
+}
+function updateUndoBtn(){
+  var b=document.getElementById("btnUndo"); if(!b) return;
+  var n=undoStack.length;
+  b.disabled=(n===0);
+  b.style.opacity=(n===0?".45":"1");
+  b.title=n?("撤销上一步修改（可回退 "+n+" 步）"):"没有可以撤销的操作";
+}
+/* 恢复快照后，把所有「复活」的条目时间戳抬高、并清掉对应墓碑 */
+function reviveUndo(snap){
+  const now=Date.now();
+  const liveTask=new Set(), liveHabit=new Set(), liveGoal=new Set();
+  /* 收集快照里所有还活着的 id */
+  Object.keys(snap.days||{}).forEach(function(k){
+    (snap.days[k].tasks||[]).forEach(function(t){ liveTask.add(t.id); t.ts=now; });
+  });
+  (snap.habits||[]).forEach(function(h){ liveHabit.add(h.id); h.ts=now; });
+  (snap.goals||[]).forEach(function(g){ liveGoal.add(g.id); g.ts=now; });
+  /* 清掉「本机墓碑」里那些在快照中仍然活着的 id —— 这正是被误删又撤销回来的那些 */
+  Object.keys(snap.days||{}).forEach(function(k){
+    const dd=snap.days[k]; if(!dd.del) return;
+    Object.keys(dd.del).forEach(function(id){ if(liveTask.has(id)) delete dd.del[id]; });
+  });
+  Object.keys(snap._hdel||{}).forEach(function(id){ if(liveHabit.has(id)) delete snap._hdel[id]; });
+  Object.keys(snap._gdel||{}).forEach(function(id){ if(liveGoal.has(id)) delete snap._gdel[id]; });
+  return snap;
+}
+function undo(){
+  if(READONLY){ roBlock(); return; }
+  if(!undoStack.length){ toast("没有可以撤销的操作了"); return; }
+  try{
+    const snap=JSON.parse(undoStack.pop());
+    S=repair(reviveUndo(snap));
+    save(); renderAll(); updateUndoBtn();
+    toast("↶ 已撤销上一步（其他设备几秒后也会同步）");
+  }catch(e){ console.error(e); toast("撤销失败："+(e.message||e)); }
+}
 /* 统一的「改数据 → 存 → 重绘」入口：即使存失败也一定重绘 */
 function commit(fn){
   if(READONLY){ roBlock(); return; }     // 只读分享版：任何数据修改都不执行
+  try{ pushUndo(); }catch(e){}
   try{ if(typeof fn==="function") fn(); }
   finally{ try{ save(); }catch(e){} try{ renderAll(); }catch(e){ console.error(e); } }
 }
@@ -816,12 +1028,14 @@ function multiRender(){
 function multiBatch(done){
   if(!multiSel.size){ toast("先勾上要操作的任务"); return; }
   const n=multiSel.size;
+  const firstEl=document.querySelector(".task .check");
   commit(()=>{
     const arr=day(viewDate).tasks;
     arr.forEach(t=>{ if(multiSel.has(t.id)){ t.done=done; t.ts=Date.now(); } });
     day(viewDate).ts=Date.now();
   });
   toast(done?("⭐ 已标记完成 "+n+" 条"):("已取消完成 "+n+" 条"));
+  if(done){ cheerFromEl(firstEl); checkAllDone(); }   // 批量完成只迸一次，不逐条乱跳
 }
 function multiBatchDel(){
   if(!multiSel.size){ toast("先勾上要删的任务"); return; }
@@ -882,12 +1096,15 @@ function renderHabits(){
   const list=$("#habitList");
   if(!S.habits.length){list.innerHTML='<div class="empty">还没有习惯，加一个开始收集星星 🌟</div>';return;}
   const tk=todayKey();
+  const yk=todayKey(addDays(new Date(),-1));
   list.innerHTML=S.habits.map((h,i)=>{
     const on=h.log.includes(tk);
+    const yon=h.log.includes(yk);
     return `<div class="habit ${h.log.length>=7?"full":""}">
       <div class="name">${esc(h.n)}</div>
       <div class="stk">🔥${streakOf(h)}天</div>
       <div class="check ${on?"on":""}" data-h="${i}" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gold);display:grid;place-items:center;cursor:pointer;font-size:13px;color:${on?"#3a2a00":"transparent"};background:${on?"var(--star)":"none"}">${on?"★":""}</div>
+      ${yon?"":`<div class="fill no-print" data-h="${i}" title="补上昨天的打卡，连续不断掉">补</div>`}
       <div class="hstars">${Array.from({length:7},(_,j)=>`<span class="${h.log.length>j?"on":""}">★</span>`).join("")}</div>
       <div class="del" data-i="${i}" style="cursor:pointer;opacity:.5;padding:0 4px">×</div>
     </div>`;}).join("");
@@ -925,16 +1142,184 @@ function renderCal(){
   }
   $("#cal").innerHTML=html;
 }
+
+/* ================= A3：里程碑进度条（统计卡下方一条细横条） ================= */
+function renderMile(){
+  const box=$("#mile"); if(!box) return;
+  const active=S.habits.filter(h=>h.log.length>0);
+  if(!active.length){ box.style.display="none"; box.innerHTML=""; return; }
+  /* 取当前连续天数最高的那个习惯来展示 */
+  let best=active[0], bv=streakOf(best);
+  active.forEach(h=>{ const v=streakOf(h); if(v>bv){ bv=v; best=h; } });
+  const next=MILE_STEPS.find(m=>m>bv) || (MILE_STEPS[MILE_STEPS.length-1]);
+  const done=MILE_STEPS.filter(m=>bv>=m).length;
+  const left=Math.max(0,next-bv);
+  const tips=MILE_STEPS.map((m,i)=>`<i class="${i<done?"on":""}"></i>`).join("");
+  box.style.display="";
+  box.innerHTML=
+    `<span class="mIco">🔥</span>`+
+    `<span class="mTxt">「${esc(best.n)}」连续 ${bv} 天`+
+      (left>0?`<small>距 ${next} 天里程碑还差 ${left} 天</small>`:`<small>已达成全部里程碑 ⭐</small>`)+
+    `</span>`+
+    `<span class="mDots">${tips}</span>`;
+}
+
+/* ================= F：回顾页 =================
+   把「月度热力图 / 14 天趋势 / 收获小结 / 目标一览」集中放在第二页，
+   主页面保持清爽。统计按 viewMonth + 数据版本号做缓存，避免每次重绘都遍历 S.days。 */
+var _rvCache={key:"",data:null};
+function monthStars(y,m){
+  const key=y+"-"+m, ver=((S.meta&&S.meta.updatedAt)||0)+":"+Object.keys(S.days).length;
+  const ck=key+"@"+ver;
+  if(_rvCache.key===ck&&_rvCache.data) return _rvCache.data;
+  const dim=new Date(y,m+1,0).getDate();
+  const days=[];
+  let stars=0, done=0, total=0, bestDay=0, bestKey="";
+  for(let d=1;d<=dim;d++){
+    const k=y+"-"+pad(m+1)+"-"+pad(d);
+    const s=dayStars(k), t=dayTotal(k);
+    days.push({k:k,d:d,s:s,t:t});
+    stars+=s; done+=s; total+=t;
+    if(s>bestDay){ bestDay=s; bestKey=k; }
+  }
+  const data={days:days,stars:stars,done:done,total:total,bestDay:bestDay,bestKey:bestKey};
+  _rvCache={key:ck,data:data};
+  return data;
+}
+function renderReview(){
+  /* --- 热力图 --- */
+  const y=viewMonth.getFullYear(), m=viewMonth.getMonth();
+  const tag=$("#rvCalTag"); if(tag) tag.textContent=y+"年"+(m+1)+"月";
+  const md=monthStars(y,m);
+  const first=new Date(y,m,1); const lead=(first.getDay()+6)%7;
+  const todayK=todayKey();
+  let html=WD.map(w=>`<div class="hd">${w}</div>`).join("");
+  for(let i=0;i<lead;i++) html+="<div></div>";
+  md.days.forEach(function(o){
+    const rate=o.t?Math.round(o.s/o.t*100):0;
+    const alpha=o.t?(0.06+rate/100*0.44):0;
+    const cls="hc"+(o.k===todayK?" today":"")+(o.k===viewDate?" sel":"")+(o.t?"":" future");
+    const bg=o.t?("rgba(255,214,102,"+alpha.toFixed(2)+")"):"transparent";
+    html+=`<div class="${cls}" data-k="${o.k}" style="background:${bg}" title="${o.d}日 ${o.t?(o.s+"/"+o.t):"没有任务"}">${o.d}</div>`;
+  });
+  const heat=$("#rvHeat"); if(heat) heat.innerHTML=html;
+
+  /* --- 最近 14 天趋势 --- */
+  const vals=[]; const labels=[];
+  for(let i=13;i>=0;i--){
+    const k=todayKey(addDays(new Date(),-i));
+    vals.push(dayStars(k));
+    const dt=parseKey(k); labels.push((dt.getMonth()+1)+"/"+dt.getDate());
+  }
+  const maxV=Math.max.apply(null,vals.concat([1]));
+  const tr=$("#rvTrend");
+  if(tr) tr.innerHTML=vals.map((v,i)=>
+    `<i style="height:${Math.max(3,Math.round(v/maxV*100))}%" title="${labels[i]} · ${v} ⭐"></i>`).join("");
+  const ax=$("#rvTrendAxis");
+  if(ax) ax.innerHTML=`<span>${labels[0]}</span><span>${labels[7]}</span><span>${labels[13]}</span>`;
+
+  /* --- 收获小结 --- */
+  const s=computeStats();
+  const summ=$("#rvSummary");
+  if(summ){
+    const rows=[
+      ["本周完成", s.wDone+" / "+s.wTotal+" 件"],
+      ["本月累计星星", md.stars+" ⭐"],
+      ["最棒的一天", md.bestKey ? (parseKey(md.bestKey).getMonth()+1)+"月"+parseKey(md.bestKey).getDate()+"日 · "+md.bestDay+" ⭐" : "—"],
+      ["历史最佳连续", s.maxStreak+" 天"],
+      ["进行中的目标", s.goalActive+" 个"],
+      ["累计完成事项", s.cumDone+" 件"]
+    ];
+    summ.innerHTML=rows.map(r=>`<div class="kv"><span>${r[0]}</span><b>${r[1]}</b></div>`).join("");
+  }
+
+  /* --- 目标一览 --- */
+  const gl=$("#rvGoals");
+  if(gl){
+    if(!S.goals.length){ gl.innerHTML='<div class="rvempty">还没有目标，去「计划」页加一个 🎯</div>'; }
+    else{
+      gl.innerHTML=S.goals.map(g=>
+        `<div class="kv"><span>${esc(g.t)}</span><b>${g.p}%</b></div>`).join("");
+    }
+  }
+}
+
 function renderAll(){
   try{ renderHero(); }catch(e){ console.error(e); }
   try{ renderStats(); }catch(e){ console.error(e); }
+  try{ renderMile();  }catch(e){ console.error(e); }
   try{ renderTasks(); }catch(e){ console.error(e); }
   try{ renderWeek();  }catch(e){ console.error(e); }
   try{ renderHabits();}catch(e){ console.error(e); }
   try{ renderGoals(); }catch(e){ console.error(e); }
   try{ renderCal();   }catch(e){ console.error(e); }
+  try{ if(reviewVisible()) renderReview(); }catch(e){ console.error(e); }
+  try{ updateUndoBtn(); }catch(e){}
   /* 只读分享版：每次重绘后再锁一遍（列表是重建的，新按钮会复活） */
   if(READONLY){ try{ roApply(); }catch(e){ console.error(e); } }
+  /* 重绘后卡片的纵向位置会变（任务/目标/习惯增减、云端数据拉回来都会撑高页面），
+     星星人挂在「某张卡」旁边，卡一挪它就得跟着挪，否则会停在半空压住别的内容。
+     这里做一次「跟着重摆」——但只在用户没手动摆过时才动（手摆过就完全尊重用户）。
+     用 rAF 合并同一帧内的多次 renderAll，避免连续重排。 */
+  scheduleDecoReflow();
+}
+
+/* 用户是否手动摆过星星人。
+   用一个**独立于坐标版本号**的标记位来判断，而不是去数存档里有没有坐标——
+   因为摆位坐标的版本号会随着布局调整往上升，升版本会作废旧坐标，
+   如果拿"有没有坐标"当判据，用户辛苦摆好的位置会在换版本时被一并清掉。
+   这里的标记只认一件事：「这只手有没有亲自拖过」。拖过就永远作尊重用户。 */
+const DECO_MANUAL_KEY="starPlanner.decoManual";
+function decoUserPlaced(){
+  try{ if(localStorage.getItem(DECO_MANUAL_KEY)==="1") return true; }catch(e){}
+  try{ if(S&&S.decoManual) return true; }catch(e){}
+  /* 兼容旧数据：老存档里若有坐标，也视为手摆过 */
+  try{
+    const p=loadDecoPos();
+    return !!(p&&Object.keys(p).some(k=>p[k]&&p[k].x>-9000));
+  }catch(e){ return false; }
+}
+function markDecoManual(){
+  try{ localStorage.setItem(DECO_MANUAL_KEY,"1"); }catch(e){}
+  try{ S.decoManual=1; if(S&&S.meta&&S.meta.updatedAt){ localStorage.setItem(KEY,JSON.stringify(S)); } }catch(e){}
+}
+let _decoReflowTimer=0;
+function scheduleDecoReflow(){
+  /* 用 setTimeout 而不是 requestAnimationFrame：
+     rAF 在后台标签页/无头浏览器里可能一直不触发，导致数据拉回来以后
+     星星人不跟着卡片重排、停在半空压住别的内容（无头测试就复现过）。
+     setTimeout 照常执行，稳。 */
+  if(_decoReflowTimer) clearTimeout(_decoReflowTimer);
+  _decoReflowTimer=setTimeout(function(){
+    _decoReflowTimer=0;
+    /* 用户手摆过就**绝不**再自动挪动——这是"手动位置优先"的硬保证 */
+    if(decoUserPlaced()) return;
+    if(typeof decoPlaceDefaults==="function"){
+      try{ decoPlaceDefaults(); }catch(e){ console.error(e); }
+    }
+  },80);
+}
+
+/* ================= F：两页切换 ================= */
+var _page="plan";
+function reviewVisible(){ return _page==="review"; }
+function showPage(p){
+  _page=p;
+  const pp=document.getElementById("pagePlan"), pr=document.getElementById("pageReview");
+  const tp=document.getElementById("tabPlan"), tr=document.getElementById("tabReview");
+  if(pp) pp.style.display=(p==="plan")?"":"none";
+  if(pr) pr.style.display=(p==="review")?"":"none";
+  if(tp) tp.classList.toggle("on",p==="plan");
+  if(tr) tr.classList.toggle("on",p==="review");
+  const mile=document.getElementById("mile"); if(mile) mile.style.display=(p==="plan")?"":"none";
+  try{ if(p==="review") renderReview(); }catch(e){ console.error(e); }
+  /* 切回「计划」页时，星星人的锚点卡片才重新可见，按新布局重算一次默认摆位。
+     但如果用户已经手动摆过位置，就一律尊重用户，绝不动它。 */
+  if(p==="plan"){
+    try{
+      if(typeof decoPlaceDefaults==="function" && !decoUserPlaced()) decoPlaceDefaults();
+    }catch(e){ console.error(e); }
+  }
 }
 
 
@@ -964,6 +1349,9 @@ function roApply(){
   const cfg=document.querySelector(".card.cfg");
   if(cfg) cfg.style.display="none";
   const sb=document.getElementById("btnShare"); if(sb) sb.style.display="none";
+  /* 只读分享版：撤销、补打卡这些"会改数据"的入口一并藏起来 */
+  const ub=document.getElementById("btnUndo"); if(ub) ub.style.display="none";
+  document.querySelectorAll(".habit .fill").forEach(el=>{ el.style.display="none"; });
   const t=document.getElementById("syncDot"); if(t) t.className="dot";
   const st=document.getElementById("syncTxt"); if(st) st.textContent="📸 只读分享";
   /* 一次性动作：样式兜底条 + 顶部说明。
@@ -999,10 +1387,12 @@ function roApply(){
 const DECO_KEY="starPlanner.decoPos";
 /* 摆位坐标的版本。
    v1 = 屏幕坐标（旧：星星人钉在屏幕上）
-   v2 = 文档坐标（新：星星人贴在页面上，跟着滚）
-   换了坐标含义就必须升版本，否则会把老位置拿来当新坐标用，
-   星星人会整片错位、正好压在卡片上挡住点击。旧版本这里直接作废、重新摆位。 */
-const DECO_VER=2;
+   v2 = 文档坐标（星星人贴在页面上，跟着滚）
+   v3 = 文档坐标 + 适配 V2 布局（新增「计划/回顾」页签栏，页面整体下移约 63px）
+   v4 = 摆位基准改为「贴卡片角/中缝」（不再依赖卡片外侧空白），并支持贴卡片下沿。
+        窄屏（<1228px）下外层没有留白，v3 的「挂卡片外侧」会把星星人顶出屏幕，
+        因此升版本、整体重排。旧版本这里直接作废、重新摆位。 */
+const DECO_VER=5;
 let decoInit=false;
 
 function loadDecoPos(){
@@ -1072,35 +1462,35 @@ function decoPlaceDefaults(){
      off: 离卡片边缘多远；dy: 相对锚点顶部的偏移；
      dx: ax="top" 时相对锚点宽度的横向比例。
      窄屏（手机）列变成单列，左右没有空地，用一套单独的默认位。 */
-  /* 默认位（按机主 2025-10 定稿的摆布复刻，v3 摆布）：
-     deco1 高帽  →「累计星星」统计卡右缘（半个身子探出页面右缘）
-     deco2 橙睡  →「今日完成」统计卡上（靠卡右侧站着）
-     deco3 探身  → 统计行第 3 张卡正上方（完全站在卡片头顶）
-     deco4 蓝杯  → hero 卡右侧、日期左边
-     deco5 书本  →「我的小目标」卡左下角
-     deco6 木床  →「习惯星球」卡右缘
-     deco7 云朵  →「月视图回顾」卡右缘（中下位置）
-     k: ax="top" 时身体压入卡片的比例，1=完全站上面（脚踩卡顶边）。
-     窄屏（手机）列变成单列，左右没有空地，用一套单独的默认位。 */
+  /* 默认位 = V1 的布局（就是机主最早熟悉的那套摆布），整表照搬、数字不动。
+     dy 是「相对锚点卡片顶部的偏移」，锚点自己会随页签栏下移，
+     所以这里绝不能再去补这 63px——补了反而整体偏低一个页签栏。
+     deco5 用 offAbs 保留 V1 的老算法（x = 卡左 + offAbs - 宽），数字与 V1 一致。
+     ⚠️ 锚点原则：只锚「具体那一张卡」的角，绝不用 :first-child/:last-child 的
+        多级后代去数一列容器——任务一多、列被撑高时锚点会漂移数千像素、星星飞走。 */
   const desk=[
     {sel:"#deco1",anchor:".stats .stat:nth-child(4)",ax:"right",off:-18,dy:-9},
     {sel:"#deco2",anchor:".stats .stat:nth-child(1)",ax:"right",off:-74,dy:-5},
     {sel:"#deco3",anchor:".stats .stat:nth-child(3)",ax:"top",dx:.73,dy:0,k:.97},
     {sel:"#deco4",anchor:".hero",ax:"right",off:-220,dy:78},
-    {sel:"#deco5",anchor:".grid > div:first-child > .card:last-child",ax:"left",off:-95,dy:88},
+    {sel:"#deco5",anchor:".grid > div:first-child > .card:last-child",ax:"left",offAbs:95,dy:88},
     {sel:"#deco6",anchor:".grid > div:last-child > .card:last-child",ax:"right",off:-7,dy:30},
     {sel:"#deco7",anchor:".cfg-area",ax:"right",off:-35,dy:282}
   ];
+  /* 手机端同样照搬 V1 的手机摆位 */
   const mob=[
     {sel:"#deco1",anchor:".grid > div:first-child > .card:first-child",ax:"right",off:10,dy:-30},
-    {sel:"#deco2",anchor:".grid > div:first-child > .card:first-child",ax:"top", dx:.06,dy:-8},
-    {sel:"#deco3",anchor:".grid > div:last-child > .card:first-child", ax:"right",off:10,dy:-14},
-    {sel:"#deco4",anchor:".grid > div:first-child > .card:first-child",ax:"top", dx:.5, dy:-8},
-    {sel:"#deco5",anchor:".grid > div:last-child > .card:last-child",  ax:"right",off:10,dy:-22},
-    {sel:"#deco6",anchor:".hero", ax:"left", off:6,dy:6},
-    {sel:"#deco7",anchor:".hero", ax:"right",off:6,dy:6}
+    {sel:"#deco2",anchor:".grid > div:first-child > .card:first-child",ax:"top",dx:.06,dy:-8},
+    {sel:"#deco3",anchor:".grid > div:last-child > .card:first-child",ax:"right",off:10,dy:-14},
+    {sel:"#deco4",anchor:".grid > div:first-child > .card:first-child",ax:"top",dx:.5,dy:-8},
+    {sel:"#deco5",anchor:".grid > div:last-child > .card:last-child",ax:"right",off:10,dy:-22},
+    {sel:"#deco6",anchor:".hero",ax:"left",off:6,dy:6},
+    {sel:"#deco7",anchor:".hero",ax:"right",off:6,dy:6}
   ];
-  const defs = window.innerWidth<720 ? mob : desk;
+  /* C4：断点必须和 CSS 的 @media(max-width:900px) 对齐。
+     以前 CSS 是 900、这里是 720，导致 720~900px（大屏手机横屏、小平板）
+     会用「手机单列布局」却套「桌面摆位坐标」，星星人整片错位。 */
+  const defs = window.matchMedia("(max-width:900px)").matches ? mob : desk;
   defs.forEach(d=>{
     const el=document.querySelector(d.sel); if(!el) return;
     const r0=el.getBoundingClientRect();
@@ -1118,21 +1508,36 @@ function decoPlaceDefaults(){
        星星人还是会准准地挂在那张卡片旁边。 */
     let x,y;
     const r=(anc&&anc.getBoundingClientRect)?anc.getBoundingClientRect():null;
+    /* off 一律是「有符号像素」，位移方向都朝着「卡片那一侧」：
+       ax="right" 时 x=r.right+off（正=探出卡右、负=缩进卡内）；
+       ax="left"  时 x=r.left+off（负=探出卡左、正=缩进卡内）。
+       offAbs（仅 ax="left" 用）保留 V1 的老语义：x=r.left-offAbs-bw，
+       数字和 V1 摆位表一一对应，方便直接把 V1 的摆位整表搬过来。
+       vc:"center" 表示垂直方向上以卡片中线对齐（ax 为左右时用）。 */
+    const vc = d.vc==="center";
     if(r&&d.ax==="top"){
       /* 挂在卡片正上方：像站在卡片头顶上，压不到卡里的内容。
          k=身体压入卡片的比例（0.72 默认半悬空，1=完全站在卡顶边） */
       x = r.left + (d.dx!==undefined?d.dx*r.width:Math.max(10,r.width*0.1));
       y = r.top - bh*(d.k!==undefined?d.k:0.72) + window.scrollY;
+    }else if(r&&d.ax==="bottom"){
+      /* 挂在卡片正下方：脚踩卡片底边，身体压在卡片下沿。
+         k=身体压入卡片的比例（0.72 默认半悬空，1=完全站在卡底边） */
+      x = r.left + (d.dx!==undefined?d.dx*r.width:Math.max(10,r.width*0.1));
+      y = r.bottom - bh*(d.k!==undefined?d.k:0.72) + window.scrollY;
     }else if(r){
-      x = (d.ax==="right") ? (r.right+d.off) : (r.left-d.off-bw);
-      y = r.top+d.dy+window.scrollY;
+      if(d.ax==="right") x = r.right + d.off;
+      else if(d.offAbs!==undefined) x = r.left + d.offAbs - bw;   /* V1 老语义：x=r.left+off-bw */
+      else x = r.left + d.off;
+      y = (vc ? (r.top + r.height/2 - bh/2) : r.top) + d.dy + window.scrollY;
     }else{
       x = (d.ax==="right") ? (window.innerWidth-bw-24) : 24;
       y = 150+d.dy+window.scrollY;
     }
     /* 转成层内坐标 */
     x-=O.x; y-=O.y;
-    /* 留一点身体在框内，别整个滑出去 */
+    /* 安全区：跟 V1 一致——横向至少留一点身体在文档内，纵向不许越过文档顶端。
+       这条只约束「默认摆位」，用户手动拖过的位置一律不钳（见 decoUserPlaced）。 */
     x=Math.max(-bw*0.45,Math.min(x,B.w-bw*0.55-O.x));
     y=Math.max(-O.y+4,Math.min(y,B.h-bh*0.5-O.y));
     el.style.left=Math.round(x)+"px"; el.style.top=Math.round(y)+"px";
@@ -1143,7 +1548,9 @@ function decoPlaceDefaults(){
 /* 落地特效：从落点迸出 6 颗小星星 */
 function decoSpark(el){
   const r=el.getBoundingClientRect();
-  const cx=r.left+r.width/2, cy=r.top+r.height/2;
+  /* .spark 挂在 body（absolute，文档坐标），而 getBoundingClientRect 给的是视口坐标，
+     所以必须补上滚动偏移，否则页面滚动后星星会迸在偏上/偏左的位置 */
+  const cx=r.left+r.width/2+(window.scrollX||0), cy=r.top+r.height/2+(window.scrollY||0);
   for(let i=0;i<6;i++){
     const sp=document.createElement("div");
     sp.className="spark";
@@ -1159,13 +1566,117 @@ function decoSpark(el){
     setTimeout(()=>sp.remove(),700);
   }
 }
+
+/* ================= A1：完成一件事就让最近的星星人「应个声」 =================
+   全站最有情绪价值的 7 只星星人以前只是静止装饰，勾选任务它们毫无反应。
+   这里在用户「真实点击」时，挑离得最近的一只跳一下 + 迸出小星星。
+   刻意不挂进 renderAll()——云端同步也会触发 renderAll，
+   那样会出现「另一台设备同步一下，这边的星星人自己乱跳」的怪事。 */
+function nearestDeco(x,y){
+  var best=null, bestD=Infinity;
+  document.querySelectorAll(".deco").forEach(function(el){
+    var r=el.getBoundingClientRect();
+    if(!r.width||r.width<2) return;                 // 还在解码 / 被隐藏
+    if(el.classList.contains("dragging")) return;   // 正在被拖的，不打扰
+    var cx=r.left+r.width/2, cy=r.top+r.height/2;
+    var d=Math.pow(cx-x,2)+Math.pow(cy-y,2);
+    if(d<bestD){ bestD=d; best=el; }
+  });
+  return best;
+}
+function decoCheer(x,y){
+  if(READONLY) return;
+  try{
+    var el=nearestDeco(x,y); if(!el) return;
+    el.classList.remove("cheer");
+    void el.offsetWidth;              // 强制重排，让动画能连着重播
+    el.classList.add("cheer");
+    setTimeout(function(){ el.classList.remove("cheer"); },660);
+    decoSpark(el);
+  }catch(e){}
+}
+/* 从某个 DOM 元素（比如刚点的那条任务的勾选框）出发找最近星星人 */
+function cheerFromEl(node){
+  if(!node||!node.getBoundingClientRect) return;
+  var r=node.getBoundingClientRect();
+  decoCheer(r.left+r.width/2, r.top+r.height/2);
+}
+
+/* ================= A3/A4：撒花庆祝 ================= */
+var _celebratedToday=null;      // 内存记录（今天已为"全部完成"庆祝过），不落盘
+function celebrate(title, sub){
+  if(READONLY) return;
+  try{
+    var box=document.getElementById("celebrate"); if(!box) return;
+    box.innerHTML="";
+    box.hidden=false;
+    var colors=["#ffd666","#ffe9a8","#c48cff","#7ef0ff","#ff9d8a","#fff3cd","#ffbe30"];
+    for(var i=0;i<34;i++){
+      var s=document.createElement("span");
+      s.className="cf";
+      var sz=5+Math.random()*7;
+      s.style.left=(Math.random()*100)+"vw";
+      s.style.width=sz+"px"; s.style.height=sz+"px";
+      s.style.background=colors[i%colors.length];
+      s.style.borderRadius=(Math.random()>.5?"50%":"2px");
+      s.style.animationDuration=(1.5+Math.random()*1.3)+"s";
+      s.style.animationDelay=(Math.random()*.5)+"s";
+      box.appendChild(s);
+    }
+    var m=document.createElement("div");
+    m.className="cfMsg";
+    m.innerHTML=title+(sub?("<small>"+sub+"</small>"):"");
+    box.appendChild(m);
+    clearTimeout(celebrate._t);
+    celebrate._t=setTimeout(function(){ box.hidden=true; box.innerHTML=""; },2600);
+  }catch(e){}
+}
+/* 里程碑阈值与记录（独立 localStorage key，不进 S，绕开 repair/merge 白名单） */
+var MILE_STEPS=[7,30,100];
+function celebratedMap(){
+  try{ return JSON.parse(localStorage.getItem("starPlanner.milestones")||"{}")||{}; }catch(e){ return {}; }
+}
+function markCelebrated(k){
+  try{ var m=celebratedMap(); m[k]=Date.now(); localStorage.setItem("starPlanner.milestones",JSON.stringify(m)); }catch(e){}
+}
+/* 打卡前后各算一次连续天数，跨过阈值就庆祝。
+   注意：取消打卡（连续变小）不庆祝。 */
+function checkStreakMilestone(habit, before, after){
+  if(after<=before) return;
+  for(var i=0;i<MILE_STEPS.length;i++){
+    var m=MILE_STEPS[i];
+    if(before<m && after>=m){
+      var key=habit.id+":"+m;
+      var seen=celebratedMap();
+      if(seen[key]) continue;
+      markCelebrated(key);
+      celebrate("🎉 连续 "+m+" 天！","「"+habit.n+"」达成里程碑，了不起 ⭐");
+      return;
+    }
+  }
+}
+/* 今日全部完成 → 撒花一次（每次打开页面最多一次，纯内存记忆） */
+function checkAllDone(){
+  if(READONLY) return;
+  try{
+    var s=computeStats();
+    var tk=todayKey();
+    if(s.tTotal>0 && s.tDone>=s.tTotal){
+      if(_celebratedToday!==tk){
+        _celebratedToday=tk;
+        celebrate("🎉 今天全部完成啦！", "今天摘到 "+s.tDone+" 颗星，明天见 ⭐");
+      }
+    }
+  }catch(e){}
+}
+
 /* 首次提示气泡（只弹一次，之后不再打扰） */
 function decoShowHint(){
   let hinted=false;
   try{ hinted=localStorage.getItem("starPlanner.decoHinted")==="1"; }catch(e){}
   if(hinted||!decoInit) return;
   const h=document.createElement("div");
-  h.className="decoHint"; h.textContent="✨ 这些星星人可以用鼠标按住拖着玩";
+  h.className="decoHint"; h.textContent="✨ 这些星星人可以用手指（或鼠标）按住拖着玩";
   document.body.appendChild(h);
   try{ localStorage.setItem("starPlanner.decoHinted","1"); }catch(e){}
   setTimeout(()=>h.remove(),6200);
@@ -1213,6 +1724,10 @@ async function initDeco(){
       const y=Math.max(-O.y+4,Math.min(parseInt(el.style.top),maxY));
       el.style.left=Math.round(x)+"px"; el.style.top=Math.round(y)+"px";
       saveDecoPos();
+      /* 只要真的拖动过，就立下"手动摆过"的标记：
+         从此以后任何自动重排（数据同步、增删任务、切页）都不会再动它的位置。
+         刷新、下次打开也照存档原样恢复。 */
+      if(wasMoved) markDecoManual();
       if(wasMoved){
         el.classList.remove("drop");
         void el.offsetWidth;          // 强制重排，让动画能重新播放
@@ -1223,20 +1738,12 @@ async function initDeco(){
     };
     el.addEventListener("pointerup",finish);
     el.addEventListener("pointercancel",finish);
-    /* 双击：弹回原来的默认位置 */
-    el.addEventListener("dblclick",()=>{
-      try{ localStorage.removeItem(DECO_KEY); }catch(e){}
-      try{ S.deco={}; }catch(e){}
-      decoInit=false; decoPlaceDefaults(); decoInit=true;
-      el.classList.remove("drop"); void el.offsetWidth; el.classList.add("drop");
-      decoSpark(el);
-      setTimeout(()=>el.classList.remove("drop"),700);
-      toast("星星人归位啦");
-    });
   });
   decoShowHint();
-  /* 窗口变窄后，把被挤出文档的星星人拉回边界内（不影响滚动方向的位置） */
+  /* 窗口变窄后，把被挤出文档的星星人拉回边界内（不影响滚动方向的位置）。
+     注意：一旦用户手动摆过位，就完全尊重用户的选择，不再做任何自动钳制。 */
   window.addEventListener("resize",()=>{
+    if(decoUserPlaced()) return;
     const O=decoOrigin(), B=decoBounds();
     document.querySelectorAll(".deco").forEach(el=>{
       const x=parseInt(el.style.left||"0"), y=parseInt(el.style.top||"0");
@@ -1284,6 +1791,7 @@ $("#taskList").onclick=e=>{
     const willDone=!t.done;
     commit(()=>{ t.done=willDone; t.ts=Date.now(); day(viewDate).ts=Date.now(); });
     toast(willDone?("⭐ "+esc(t.t)+" 完成，+1 颗星"):("取消完成："+esc(t.t)));
+    if(willDone){ cheerFromEl(c); checkAllDone(); }   // A1 星星人应声；A4 今日全完成
   }
   if(d){
     const n=t.t;
@@ -1330,22 +1838,35 @@ $("#addHabit").onclick=()=>{
 };
 $("#habitInput").onkeydown=e=>{if(e.key==="Enter"){$("#addHabit").click();e.preventDefault();}};
 $("#habitList").onclick=e=>{
-  const ck=e.target.closest(".check"), dl=e.target.closest(".del");
+  const ck=e.target.closest(".check"), dl=e.target.closest(".del"), fl=e.target.closest(".fill");
+  if(fl){                                   // H2：补昨天打卡（忘打卡也不至于断掉连续）
+    const x=S.habits[+fl.dataset.h]; if(!x) return;
+    const yk=todayKey(addDays(new Date(),-1));
+    if(x.log.includes(yk)){ toast("昨天已经打过卡了"); return; }
+    const before=streakOf(x);
+    commit(()=>{ x.log=[...x.log,yk]; x.ts=Date.now(); });
+    toast("✅ 已补昨天，连续 "+streakOf(x)+" 天 🔥");
+    checkStreakMilestone(x,before,streakOf(x));
+    cheerFromEl(fl);
+    return;
+  }
   if(!ck&&!dl) return;
   if(ck){
     const x=S.habits[+ck.dataset.h]; if(!x) return;
     const tk=todayKey(), willCheck=!x.log.includes(tk);
+    const before=streakOf(x);
     commit(()=>{
       x.log = willCheck ? [...x.log,tk] : x.log.filter(k=>k!==tk);
       x.ts=Date.now();
     });
     toast(willCheck?("🔥 "+esc(x.n)+" 连续 "+streakOf(x)+" 天"):("已取消 "+esc(x.n)+" 今天的打卡"));
+    if(willCheck){ cheerFromEl(ck); checkStreakMilestone(x,before,streakOf(x)); }
   }
   if(dl){
     const x=S.habits[+dl.dataset.i]; if(!x) return;
     const n=x.n;
     commit(()=>{ S.habits.splice(+dl.dataset.i,1); S._hdel=S._hdel||{}; S._hdel[x.id]=Date.now(); });
-    toast("已删除习惯："+esc(n));
+    toast("已删除习惯："+esc(n)+"（点「↶ 撤销」可恢复）");
   }
 };
 $("#addGoal").onclick=()=>{
@@ -1366,8 +1887,48 @@ $("#goalList").onclick=e=>{
     const np=Math.max(0,Math.min(100,g.p+(+b.dataset.v)));
     commit(()=>{ g.p=np; g.ts=Date.now(); });
     toast("进度 "+g.p+"% → "+np+"%"+(np===100?"🎉 达成！":""));
+    if(np>g.p) cheerFromEl(b);
+    if(np===100&&g.p<100) celebrate("🎉 目标达成！", esc(g.t)+" · 100%");
   }
 };
+
+/* ================= F：标签页 / 回顾页翻月 / 撤销按钮 事件绑定 ================= */
+(function(){
+  const tp=document.getElementById("tabPlan"), tr=document.getElementById("tabReview");
+  if(tp) tp.onclick=()=>showPage("plan");
+  if(tr) tr.onclick=()=>showPage("review");
+  const rp=document.getElementById("rvPrevMonth"), rn=document.getElementById("rvNextMonth");
+  if(rp) rp.onclick=()=>{ viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()-1,1); renderReview(); };
+  if(rn) rn.onclick=()=>{ viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()+1,1); renderReview(); };
+  /* 热力图点某天 → 跳回「计划」页看那天的详情 */
+  const heat=document.getElementById("rvHeat");
+  if(heat) heat.onclick=e=>{
+    const c=e.target.closest(".hc"); if(!c||!c.dataset.k) return;
+    viewDate=c.dataset.k;
+    showPage("plan");
+    renderAll();
+    toast("已跳到 "+c.dataset.k.slice(5).replace("-","/")+" 那天");
+  };
+  const bu=document.getElementById("btnUndo");
+  if(bu) bu.onclick=undo;
+  updateUndoBtn();
+})();
+
+/* ================= C3：软键盘不遮提示 =================
+   iOS/微信里点输入框弹出键盘，会把 fixed 在底部的 toast 完全盖住，
+   用户以为"点了没反应"。用 visualViewport 算出被键盘占掉的高度，
+   通过 CSS 变量 --kb 把 toast 顶上去。不支持的老浏览器自动降级。 */
+(function(){
+  if(!window.visualViewport) return;
+  const vv=window.visualViewport;
+  function sync(){
+    const kb=Math.max(0, window.innerHeight-(vv.height+vv.offsetTop));
+    document.documentElement.style.setProperty("--kb", Math.round(kb)+"px");
+  }
+  vv.addEventListener("resize",sync);
+  vv.addEventListener("scroll",sync);
+  sync();
+})();
 /* 周计划文本：输入即存，即时重算统计 */
 
 /* 备份 */
@@ -1389,6 +1950,12 @@ $("#btnExportHtml").onclick=()=>{
     // 先移除旧的注入脚本（它含上次的数据），再按当前 DOM 重建
     let out=document.documentElement.outerHTML
       .replace(new RegExp('<script id="star-'+'embedded" type="application/json">[\\s\\S]*?<\\/script>',"g"),"");
+    /* 安全：必须抹掉明文连接码（PRESET_CFG 里是真实 Token），否则打包出的
+       HTML 一旦转发给别人，等于把仓库权限一起交出去。复用 buildSnapshot 的同款逻辑。 */
+    out=out.replace(new RegExp(CFG_KEY+"[^;]{0,800};"),CFG_OFF+";");
+    if(/ghp_[A-Za-z0-9]{20,}/.test(out)){
+      toast("打包中止：检测到连接码未清干净，已放弃导出（避免泄露）"); return;
+    }
     const tag=EMBED_TAG.replace("__STAR_DATA__",payload);
     if(out.indexOf("</head>")>-1) out=out.replace("</head>",tag+"</head>");
     else out=out.replace("</body>",tag+"</body>");
@@ -1396,7 +1963,7 @@ $("#btnExportHtml").onclick=()=>{
     const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
     a.download="星星人计划表-"+todayKey()+".html"; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),3000);
-    toast("📦 已打包：数据写进网页里了，存微信收藏/网盘都行，换电脑双击就有数据");
+    toast("📦 已打包：数据写进网页里了，换电脑双击就有数据（连接码已清除）");
   }catch(e){ console.error(e); toast("打包失败："+e.message+"（改用「导出备份」也行）"); }
 };
 $("#btnImport").onclick=()=>$("#fileImport").click();
@@ -1478,7 +2045,7 @@ $("#btnHelp").onclick=()=>{
 "· 再点一次「批量」退出勾选模式",
 "",
 "⑧ 星星人可以玩",
-"下面三只星星人能用鼠标按住拖着走，它们是「贴在页面上」的——",
+"页面上 7 只星星人能用手指（或鼠标）按住拖着走，它们是「贴在页面上」的——",
 "往下翻页面它们会跟着滚出去，滚回来还待在原处。",
 "· 鼠标移上去会轻轻上浮，按住会变亮、阴影变深（像被捏在手里）",
 "· 松手会弹一下，冒出小星星",
@@ -1589,7 +2156,8 @@ async function genLongShot(scale){
       filter:function(el){
         if(el.classList&&(el.classList.contains("spark")||el.classList.contains("decoHint"))) return false;
         if(el.classList&&el.classList.contains("card")&&el.classList.contains("cfg")) return false;
-        if(el.id==="sky"||el.id==="toast") return false;
+        if(el.classList&&el.classList.contains("tabs")) return false;
+        if(el.id==="sky"||el.id==="toast"||el.id==="celebrate") return false;
         return true;
       }
     });
@@ -1666,6 +2234,8 @@ if($("#btnShare")) $("#btnShare").onclick=makeLongShot;
    早先在顶部工具条下还挂过一个一模一样的面板，两处并存很容易让人
    搞不清该填哪一个（而且填了上面的下面不同步），现已统一成一处。 */
 function focusSyncCard(){
+  /* 同步卡在「计划」页，若当前停在「回顾」页，先切回去，否则滚动会落空 */
+  if(typeof _page!=="undefined"&&_page!=="plan"){ try{ showPage("plan"); }catch(e){} }
   const card=document.querySelector(".card.cfg");
   if(!card) return;
   try{ card.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){}
@@ -1723,7 +2293,7 @@ $("#btnClearCfg").onclick=()=>{
   showSyncSetup(); setSyncUI("","未开启"); toast("已关闭云同步");
 };
 $("#btnSync").onclick=()=>{
-  if(!ghReady()){ toast("还没连接，往下看「多端自动同步」按提示连一次即可"); return; }
+  if(!ghReady()){ if(typeof _page!=="undefined"&&_page!=="plan"){ try{ showPage("plan"); }catch(e){} } toast("还没连接，往下看「多端自动同步」按提示连一次即可"); return; }
   setSyncUI("","同步中…"); pullRemote().then(()=>pushRemote()).then(()=>toast("✅ 已同步"));
 };
 $("#btnSyncNow").onclick=()=>{
@@ -1975,11 +2545,12 @@ window.addEventListener("unhandledrejection",e=>{
         if(!warned) toast("☁️ 云端已同步，多端自动保持一致");
       }).catch(()=>{});
     } else {
-      /* 没连上：露出底部那张同步卡片，并把光标/视线带过去。
-         全站只有那一个地方填连接码，不再另起一个面板。 */
+      /* 没连上：露出底部那张同步卡片，但**不**把页面自动滚过去。
+         以前这里会 scrollIntoView 到底部，导致每次打开页面都被甩到最底下，
+         第一眼看不到计划内容、也看不到顶部摆好的星星人。现在只做轻提示，
+         用户想连自己点工具条上的「未连接」即可，视线不再被强行拽走。 */
       setSyncUI("","未连接");
       showSyncSetup();
-      setTimeout(()=>{ try{ focusSyncCard(); }catch(e){ console.error(e); } },700);
     }
   }catch(e){ console.error(e); }
   renderAll();
@@ -3755,5 +4326,7 @@ window.__shot={domToPng:domToPng,domToCanvas:domToCanvas};
     </div>
   </div>
 </div>
+<!-- 撒花庆祝浮层（A3 里程碑 / A4 今日全完成）。fixed 覆盖层，不打印、不进长图 -->
+<div class="no-print" id="celebrate" hidden></div>
 </body>
 </html>
